@@ -14,6 +14,7 @@ import { ClassesModule } from './class/classes.module';
 import { AdminModule } from './admin/admin.module';
 import {AuthModule } from './auth/auth.module';
 import { AttendanceUserModule } from './attendance-user/attendance-user.module'
+import { MessagesModule } from './messages/messages.module';
 @Module({
   imports: [
       StudentsModule,
@@ -29,7 +30,8 @@ import { AttendanceUserModule } from './attendance-user/attendance-user.module'
      AdminModule,
      AuthModule,
      AttendanceUserModule,
-    // add more modules here
+     MessagesModule
+
   ],
   controllers: [AppController],
   providers: [AppService],

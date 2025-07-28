@@ -105,6 +105,40 @@ async getByUsername(@Query('username') username: string) {
   }
 }
 
+@Get('fetch-by-mobile')
+async getByMobile(@Query('mobile') mobile: string) {
+  if (!mobile) {
+    return {
+      status: 'error',
+      message: 'Missing or empty mobile parameter.',
+    };
+  }
+
+  try {
+    const staff = await this.staffService.findByMobile(mobile);
+
+    if (staff) {
+      return {
+        status: 'success',
+        staff: {
+          username:staff.username
+        },
+      };
+    } else {
+      return {
+        status: 'success',
+        staff: null,
+        message: `No staff found for mobile: ${mobile}`,
+      };
+    }
+  } catch (error) {
+    console.error('Controller error:', error); 
+    return {
+      status: 'error',
+      message: 'Database query failed.',
+    };
+  }
+}
 
   @Post('register')
   async register(@Body() dto: RegisterStaffDto) {

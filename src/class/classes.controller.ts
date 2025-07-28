@@ -2,6 +2,7 @@ import { Controller, Get, Query,NotFoundException,Post,Body,Param, } from '@nest
 import { ClassesService } from './classes.service';
 import { FetchClassIdDto} from './dto/fetch-class-id.dto';
 import { AddClassDto } from './dto/add-class.dto';
+import { DeleteClassDto } from './dto/delete-class.dto';
 
 @Controller('class')
 export class ClassesController {
@@ -25,6 +26,10 @@ export class ClassesController {
   async addClass(@Body() dto: AddClassDto) {
     return this.classesService.addClass(dto);
   }
+  @Post('delete')
+    async deleteClass(@Body() dto: DeleteClassDto) {
+      return this.classesService.deleteClass(dto);
+    }
   @Get('get_class_data')
   async getClassData(
     @Query('school_id') schoolId: string,

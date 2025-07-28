@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { CreateStaffAttendanceDto } from './dto/create-staff-attendance.dto';
@@ -40,36 +44,44 @@ export class AttendanceService {
 
   async markStudentAttendance(dto: CreateAttendanceDto) {
     const { username, date, session, status, school_id, class_id } = dto;
-    const column = session === 'FN' ? 'fn_status' : 'an_status';
+    const attendanceDate = new Date(date);
 
-    // Try to update first
+    if (isNaN(attendanceDate.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+
     const existing = await this.prisma.studentAttendance.findUnique({
       where: {
         username_date: {
           username,
-          date: new Date(date),
+          date: attendanceDate,
         },
       },
     });
+
+    const fn_status = session === 'FN' ? status : 'NM';
+    const an_status = session === 'AN' ? status : 'NM';
 
     if (existing) {
       await this.prisma.studentAttendance.update({
         where: {
           username_date: {
             username,
-            date: new Date(date),
+            date: attendanceDate,
           },
         },
         data: {
-          [column]: status,
+          fn_status: session === 'FN' ? status : existing.fn_status,
+          an_status: session === 'AN' ? status : existing.an_status,
         },
       });
     } else {
       await this.prisma.studentAttendance.create({
         data: {
           username,
-          date: new Date(date),
-          [column]: status,
+          date: attendanceDate,
+          fn_status,
+          an_status,
           school_id: Number(school_id),
           class_id: Number(class_id),
         },
@@ -124,7 +136,7 @@ export class AttendanceService {
 
     const attendance = students.map((student) => {
       const record = attendanceRecords.find(
-        (att) => att.username === student.username
+        (att) => att.username === student.username,
       );
       return {
         username: student.username,
@@ -194,35 +206,40 @@ export class AttendanceService {
 
   async markStaffAttendance(dto: CreateStaffAttendanceDto) {
     const { username, date, session, status, school_id } = dto;
-    const column = session === 'FN' ? 'fn_status' : 'an_status';
+    const attendanceDate = new Date(date);
 
     const existing = await this.prisma.staffAttendance.findUnique({
       where: {
         username_date: {
           username,
-          date: new Date(date),
+          date: attendanceDate,
         },
       },
     });
+
+    const fn_status = session === 'FN' ? status : 'NM';
+    const an_status = session === 'AN' ? status : 'NM';
 
     if (existing) {
       await this.prisma.staffAttendance.update({
         where: {
           username_date: {
             username,
-            date: new Date(date),
+            date: attendanceDate,
           },
         },
         data: {
-          [column]: status,
+          fn_status: session === 'FN' ? status : existing.fn_status,
+          an_status: session === 'AN' ? status : existing.an_status,
         },
       });
     } else {
       await this.prisma.staffAttendance.create({
         data: {
           username,
-          date: new Date(date),
-          [column]: status,
+          date: attendanceDate,
+          fn_status,
+          an_status,
           school_id: Number(school_id),
         },
       });
@@ -291,6 +308,26 @@ export class AttendanceService {
       where: whereClause,
       select: {
         username: true,
+        date: true,
+        fn_status: true,
+        an_status: true,
+      },
+    });
+
+    return {
+      status: 'success',
+      staff: attendance,
+    };
+  }
+
+  async fetchStaffAttendanceByUsername(username?: string, schoolId?: string) {
+    const whereClause: any = {};
+    if (username) whereClause.username = username;
+    if (schoolId) whereClause.school_id = Number(schoolId);
+
+    const attendance = await this.prisma.staffAttendance.findMany({
+      where: whereClause,
+      select: {
         date: true,
         fn_status: true,
         an_status: true,

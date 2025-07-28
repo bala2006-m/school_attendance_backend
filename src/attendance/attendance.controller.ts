@@ -159,4 +159,16 @@ async getStaffMonthly(
 
     return this.attendanceService.fetchAttendance(date, schoolId);
   }
+
+  @Get('staff/fetch_staff_attendance_by_username')
+  async fetchStaffAttendanceByUsername(
+    @Query('username') username?: string,
+    @Query('school_id') schoolId?: string,
+  ) {
+    if (username && !schoolId) {
+      throw new BadRequestException('school_id is required when filtering by username');
+    }
+
+    return this.attendanceService.fetchStaffAttendanceByUsername(username, schoolId);
+  }
 }

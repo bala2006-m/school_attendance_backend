@@ -56,7 +56,22 @@ async findByUsername(username: string) {
     throw error;
   }
 }
-
+async findByMobile(mobile: string) {
+  try {
+    var mobile=`+91${mobile}`;
+  
+    
+    return await this.prisma.staff.findUnique({
+      where: { mobile },
+      select: {
+        username:true,
+      },
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    throw error;
+  }
+}
 
   async register(dto: RegisterStaffDto) {
     const exists = await this.prisma.staff.findUnique({

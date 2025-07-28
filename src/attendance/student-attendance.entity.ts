@@ -14,5 +14,5 @@ export class StudentAttendance {
   @Column()
   date: string;
 
-  // Add more columns as needed (e.g., username, an_status, etc.)
+
 }

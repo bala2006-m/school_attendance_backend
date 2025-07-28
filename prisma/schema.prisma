@@ -53,6 +53,7 @@ model School {
   staffAttendances   StaffAttendance[]
   studentAttendances StudentAttendance[]
   admins             Admin[]
+  Messages           Messages[]
 }
 
 model Classes {
@@ -108,8 +109,8 @@ model Staff {
 model StaffAttendance {
   username  String
   date      DateTime
-  fn_status String   @default("Absent")
-  an_status String   @default("Absent")
+  fn_status String  @default("null")
+  an_status String  @default("null")
   school_id Int?
 
   school School? @relation(fields: [school_id], references: [id])
@@ -124,8 +125,8 @@ model Student {
   username  String  @unique
   name      String?
   gender    Gender?
-  email     String  @unique
-  mobile    String  @unique
+  email     String 
+  mobile    String  
   class_id  Int
   school_id Int
   photo     Bytes?
@@ -144,8 +145,8 @@ model Student {
 model StudentAttendance {
   username  String
   date      DateTime
-  fn_status String   @default("Absent")
-  an_status String   @default("Absent")
+  fn_status String   @default("null")
+  an_status String   @default("null")
   school_id Int
   class_id  Int
 
@@ -197,6 +198,17 @@ model Admin {
 
   school School          @relation(fields: [school_id], references: [id])
   user   Attendance_user @relation(fields: [username], references: [username])
+
+  @@index([school_id])
+}
+
+model Messages {
+  id        Int     @id @default(autoincrement())
+  messages  String  @db.VarChar(200)
+  date      String? @db.VarChar(45)
+  school_id Int
+
+  school School @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([school_id])
 }

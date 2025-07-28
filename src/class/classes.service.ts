@@ -1,6 +1,7 @@
 import { Injectable ,ConflictException,NotFoundException,InternalServerErrorException} from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { AddClassDto } from './dto/add-class.dto';
+import { DeleteClassDto } from './dto/delete-class.dto';
 
 @Injectable()
 export class ClassesService {
@@ -77,7 +78,42 @@ async addClass(dto: AddClassDto) {
     } catch (error) {
       throw new InternalServerErrorException('Add failed: ' + error.message);
     }
+  }async deleteClass(dto: DeleteClassDto) {
+  const { class: className, section, school_id } = dto;
+  const schoolIdInt = Number(school_id);
+
+  try {
+    const exists = await this.prisma.classes.findFirst({
+      where: {
+        class: className,
+        section,
+        school_id: schoolIdInt,
+      },
+    });
+
+    if (!exists) {
+      throw new ConflictException('Class not found');
+    }
+
+    const deletedClass = await this.prisma.classes.delete({
+      where: {
+        id: exists.id, // safer to delete by ID to avoid multiple deletes
+      },
+    });
+
+    return {
+      status: 'success',
+      message: 'Class deleted successfully',
+      data: {
+        class: deletedClass.class,
+        section: deletedClass.section,
+        school_id: deletedClass.school_id,
+      },
+    };
+  } catch (error) {
+    throw new InternalServerErrorException('Delete failed: ' + error.message);
   }
+}
 
 async findClassId(school_id: string, className: string, section: string): Promise<number | null> {
   const schoolIdNum: number = Number(school_id);
