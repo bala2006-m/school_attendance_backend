@@ -109,8 +109,8 @@ model Staff {
 model StaffAttendance {
   username  String
   date      DateTime
-  fn_status String  @default("null")
-  an_status String  @default("null")
+  fn_status String   @default("null")
+  an_status String   @default("null")
   school_id Int?
 
   school School? @relation(fields: [school_id], references: [id])
@@ -125,8 +125,8 @@ model Student {
   username  String  @unique
   name      String?
   gender    Gender?
-  email     String 
-  mobile    String  
+  email     String
+  mobile    String
   class_id  Int
   school_id Int
   photo     Bytes?
@@ -211,4 +211,27 @@ model Messages {
   school School @relation(fields: [school_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([school_id])
+}
+
+model LeaveRequest {
+  id           Int       @id @default(autoincrement())
+  username     String    // The user requesting leave
+  role         Role      @default(student)  // Role of requester (optional, helpful for logic)
+  school_id    Int
+  class_id     Int
+  from_date    DateTime  // Leave start date
+  to_date      DateTime  // Leave end date
+  reason       String?   // Optional leave reason
+  status       String    @default("pending") // "pending", "approved", "rejected"
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  @@index([username])
+  @@index([school_id, class_id])
+}
+
+enum Role {
+  admin
+  staff
+  student
 }

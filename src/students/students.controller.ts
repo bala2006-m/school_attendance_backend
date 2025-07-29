@@ -122,4 +122,26 @@ export class StudentsController {
         },
       };
     }
+   // attendance.controller.ts
+@Get('attendance/consecutive-absents')
+getConsecutiveAbsents(
+  @Query('school_id') school_id: number,
+  @Query('class_id') class_id: number,
+  @Query('limit') limit: number
+) {
+  return this.studentsService.getUsersWithLongestConsecutiveAbsentDays({ school_id, class_id, limit });
 }
+
+@Get('low-percentage')
+  async getLowAttendanceStudents(
+    @Query('school_id') school_id: number,
+    @Query('class_id') class_id: number,
+    @Query('thresholdPercent') thresholdPercent?: number,
+  ) {
+    if (!thresholdPercent) {
+      throw new Error('thresholdPercent query parameter is required');
+    }
+     return this.studentsService.getStudentsWithLowAttendance({school_id, class_id, thresholdPercent });
+  }
+}
+

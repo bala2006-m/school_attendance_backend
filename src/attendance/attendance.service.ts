@@ -11,7 +11,11 @@ import { CreateStaffAttendanceDto } from './dto/create-staff-attendance.dto';
 export class AttendanceService {
   constructor(private prisma: PrismaService) {}
 
-  async checkAttendanceExists(schoolId: string, classId: string, date: string): Promise<boolean> {
+  async checkAttendanceExists(
+    schoolId: string,
+    classId: string,
+    date: string,
+  ): Promise<boolean> {
     try {
       const exists = await this.prisma.studentAttendance.findFirst({
         where: {
@@ -26,7 +30,11 @@ export class AttendanceService {
     }
   }
 
-  async fetchAttendanceByClassId(class_id: string, school_id: string, username: string) {
+  async fetchAttendanceByClassId(
+    class_id: string,
+    school_id: string,
+    username: string,
+  ) {
     return this.prisma.studentAttendance.findMany({
       where: {
         class_id: Number(class_id),
@@ -113,7 +121,11 @@ export class AttendanceService {
     });
   }
 
-  async getAttendanceByClassAndDate(class_id: string, date: string, school_id: string) {
+  async getAttendanceByClassAndDate(
+    class_id: string,
+    date: string,
+    school_id: string,
+  ) {
     const students = await this.prisma.student.findMany({
       where: {
         class_id: Number(class_id),
@@ -152,10 +164,29 @@ export class AttendanceService {
       attendance,
     };
   }
-
   async getMonthlySummary(username: string, month: number, year: number) {
-    const fromDate = new Date(year, month - 1, 1);
-    const toDate = new Date(year, month, 0);
+    const monthNum = Number(month);
+    const yearNum = Number(year);
+
+    if (
+      !username ||
+      isNaN(monthNum) ||
+      isNaN(yearNum) ||
+      monthNum < 1 ||
+      monthNum > 12 ||
+      yearNum < 1900 ||
+      yearNum > 2100
+    ) {
+      return {
+        status: 'error',
+        message: 'Invalid or missing username, month, or year',
+        monthNum,
+        yearNum,
+      };
+    }
+
+    const fromDate = new Date(yearNum, monthNum - 1, 1);
+    const toDate = new Date(yearNum, monthNum, 0);
 
     const records = await this.prisma.studentAttendance.findMany({
       where: {
@@ -173,12 +204,37 @@ export class AttendanceService {
       orderBy: { date: 'asc' },
     });
 
+    // Instead of counts, collect arrays of dates for each category
+    const fnPresentDates: string[] = [];
+    const anPresentDates: string[] = [];
+    const fnAbsentDates: string[] = [];
+    const anAbsentDates: string[] = [];
+
+    for (const record of records) {
+      const dateStr = record.date.toISOString().split('T')[0]; // Format 'YYYY-MM-DD'
+
+      if (record.fn_status === 'P') fnPresentDates.push(dateStr);
+      if (record.fn_status === 'A') fnAbsentDates.push(dateStr);
+
+      if (record.an_status === 'P') anPresentDates.push(dateStr);
+      if (record.an_status === 'A') anAbsentDates.push(dateStr);
+    }
+
+    const totalSessions = records.length * 2; // Each day has FN + AN
+    const totalPresent = fnPresentDates.length + anPresentDates.length;
+    const totalPercentage =
+      totalSessions === 0 ? 0 : (totalPresent / totalSessions) * 100;
+
     return {
       status: 'success',
-      count: records.length,
+      TotalMarking: records.length, // Total marking days
       month,
       year,
-      records,
+      fnPresentDates,
+      anPresentDates,
+      fnAbsentDates,
+      anAbsentDates,
+      totalPercentage: Number(totalPercentage.toFixed(2)),
     };
   }
 
@@ -269,17 +325,103 @@ export class AttendanceService {
       record: record ?? { fn_status: null, an_status: null },
     };
   }
+async getStudentAttendanceBetweenDateRange(
+  username: string,
+  fromDateInput: string,
+  toDateInput: string,
+) {
+  const fromDate = new Date(fromDateInput);
+  const toDate = new Date(toDateInput);
+
+  if (
+    !username ||
+    isNaN(fromDate.getTime()) ||
+    isNaN(toDate.getTime()) ||
+    fromDate > toDate
+  ) {
+    return {
+      status: 'error',
+      message: 'Invalid or missing username, fromDate, or toDate',
+    };
+  }
+
+  const records = await this.prisma.studentAttendance.findMany({
+    where: {
+      username,
+      date: {
+        gte: fromDate,
+        lte: toDate,
+      },
+    },
+    select: {
+      date: true,
+      fn_status: true,
+      an_status: true,
+    },
+    orderBy: { date: 'asc' },
+  });
+
+  const fnPresentDates: string[] = [];
+  const anPresentDates: string[] = [];
+  const fnAbsentDates: string[] = [];
+  const anAbsentDates: string[] = [];
+
+  for (const record of records) {
+    const dateStr = record.date.toISOString().split('T')[0];
+
+    if (record.fn_status === 'P') fnPresentDates.push(dateStr);
+    if (record.fn_status === 'A') fnAbsentDates.push(dateStr);
+
+    if (record.an_status === 'P') anPresentDates.push(dateStr);
+    if (record.an_status === 'A') anAbsentDates.push(dateStr);
+  }
+
+  const totalSessions = records.length * 2;
+  const totalPresent = fnPresentDates.length + anPresentDates.length;
+  const totalPercentage = totalSessions === 0 ? 0 : (totalPresent / totalSessions) * 100;
+
+  return {
+    status: 'success',
+    TotalMarking: records.length,
+    fnPresentDates,
+    anPresentDates,
+    fnAbsentDates,
+    anAbsentDates,
+    totalPercentage: Number(totalPercentage.toFixed(2)),
+  };
+}
+
 
   async getStaffMonthly(username: string, month: number, year: number) {
-    const from = new Date(year, month - 1, 1);
-    const to = new Date(year, month, 0);
+    const monthNum = Number(month);
+    const yearNum = Number(year);
+
+    if (
+      !username ||
+      isNaN(monthNum) ||
+      isNaN(yearNum) ||
+      monthNum < 1 ||
+      monthNum > 12 ||
+      yearNum < 1900 ||
+      yearNum > 2100
+    ) {
+      return {
+        status: 'error',
+        message: 'Invalid or missing username, month, or year',
+        monthNum,
+        yearNum,
+      };
+    }
+
+    const fromDate = new Date(yearNum, monthNum - 1, 1);
+    const toDate = new Date(yearNum, monthNum, 0);
 
     const records = await this.prisma.staffAttendance.findMany({
       where: {
         username,
         date: {
-          gte: from,
-          lte: to,
+          gte: fromDate,
+          lte: toDate,
         },
       },
       select: {
@@ -290,14 +432,105 @@ export class AttendanceService {
       orderBy: { date: 'asc' },
     });
 
+    // Instead of counts, collect arrays of dates for each category
+    const fnPresentDates: string[] = [];
+    const anPresentDates: string[] = [];
+    const fnAbsentDates: string[] = [];
+    const anAbsentDates: string[] = [];
+
+    for (const record of records) {
+      const dateStr = record.date.toISOString().split('T')[0]; // Format 'YYYY-MM-DD'
+
+      if (record.fn_status === 'P') fnPresentDates.push(dateStr);
+      if (record.fn_status === 'A') fnAbsentDates.push(dateStr);
+
+      if (record.an_status === 'P') anPresentDates.push(dateStr);
+      if (record.an_status === 'A') anAbsentDates.push(dateStr);
+    }
+
+    const totalSessions = records.length * 2; // Each day has FN + AN
+    const totalPresent = fnPresentDates.length + anPresentDates.length;
+    const totalPercentage =
+      totalSessions === 0 ? 0 : (totalPresent / totalSessions) * 100;
+
     return {
       status: 'success',
-      username,
+      TotalMarking: records.length, // Total marking days
       month,
       year,
-      records,
+      fnPresentDates,
+      anPresentDates,
+      fnAbsentDates,
+      anAbsentDates,
+      totalPercentage: Number(totalPercentage.toFixed(2)),
     };
   }
+
+  async getStaffAttendanceBetweenDateRange(
+  username: string,
+  fromDateInput: string,
+  toDateInput: string,
+) {
+  const fromDate = new Date(fromDateInput);
+  const toDate = new Date(toDateInput);
+
+  if (
+    !username ||
+    isNaN(fromDate.getTime()) ||
+    isNaN(toDate.getTime()) ||
+    fromDate > toDate
+  ) {
+    return {
+      status: 'error',
+      message: 'Invalid or missing username, fromDate, or toDate',
+    };
+  }
+
+  const records = await this.prisma.staffAttendance.findMany({
+    where: {
+      username,
+      date: {
+        gte: fromDate,
+        lte: toDate,
+      },
+    },
+    select: {
+      date: true,
+      fn_status: true,
+      an_status: true,
+    },
+    orderBy: { date: 'asc' },
+  });
+
+  const fnPresentDates: string[] = [];
+  const anPresentDates: string[] = [];
+  const fnAbsentDates: string[] = [];
+  const anAbsentDates: string[] = [];
+
+  for (const record of records) {
+    const dateStr = record.date.toISOString().split('T')[0];
+
+    if (record.fn_status === 'P') fnPresentDates.push(dateStr);
+    if (record.fn_status === 'A') fnAbsentDates.push(dateStr);
+
+    if (record.an_status === 'P') anPresentDates.push(dateStr);
+    if (record.an_status === 'A') anAbsentDates.push(dateStr);
+  }
+
+  const totalSessions = records.length * 2;
+  const totalPresent = fnPresentDates.length + anPresentDates.length;
+  const totalPercentage = totalSessions === 0 ? 0 : (totalPresent / totalSessions) * 100;
+
+  return {
+    status: 'success',
+    TotalMarking: records.length,
+    fnPresentDates,
+    anPresentDates,
+    fnAbsentDates,
+    anAbsentDates,
+    totalPercentage: Number(totalPercentage.toFixed(2)),
+  };
+}
 
   async fetchAttendance(date?: string, schoolId?: string) {
     const whereClause: any = {};
