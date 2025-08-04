@@ -293,6 +293,7 @@ export class StudentsService {
         fn_status: true,
         an_status: true,
       },
+      orderBy: { username: 'asc' },
     });
 
     // Group records by user
