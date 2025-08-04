@@ -33,6 +33,25 @@ async getAbsentStudents(
 }
 
 
+@Get('check_attendance_status_session')
+  async checkAttendanceStatusSession(
+    @Query('school_id') schoolId: string,
+    @Query('class_id') classId: string,
+    @Query('date') date: string,
+    @Query('session') session: string,
+  ) {
+    if (!schoolId || !classId || !date) {
+      throw new BadRequestException('Missing required parameters: school_id, class_id, or date');
+    }
+
+    const attendanceExists = await this.attendanceService.checkAttendanceExistsSession(schoolId, classId, date,session);
+
+    return {
+      status: 'success',
+      attendance_exists: attendanceExists,
+    };
+  }
+  
 @Get('check_attendance_status')
   async checkAttendanceStatus(
     @Query('school_id') schoolId: string,

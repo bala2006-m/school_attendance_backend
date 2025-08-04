@@ -11,7 +11,42 @@ import { CreateStaffAttendanceDto } from './dto/create-staff-attendance.dto';
 export class AttendanceService {
   constructor(private prisma: PrismaService) {}
 
-  async checkAttendanceExists(schoolId: string, classId: string, date: string): Promise<boolean> {
+  async checkAttendanceExistsSession(
+  schoolId: string,
+  classId: string,
+  date: string,
+  session: string,
+): Promise<boolean> {
+  try {
+    const whereClause: any = {
+      school_id: Number(schoolId),
+      class_id: Number(classId),
+      date: new Date(date),
+    };
+
+    if (session === 'FN') {
+      whereClause.fn_status = { in: ['P', 'A'] };
+    } else if (session === 'AN') {
+      whereClause.an_status = { in: ['P', 'A'] };
+    } else {
+      throw new Error('Invalid session value');
+    }
+
+    const exists = await this.prisma.studentAttendance.findFirst({
+      where: whereClause,
+    });
+
+    return !!exists;
+  } catch (error) {
+    throw new InternalServerErrorException('Database query failed');
+  }
+}
+
+async checkAttendanceExists(
+    schoolId: string,
+    classId: string,
+    date: string,
+  ): Promise<boolean> {
     try {
       const exists = await this.prisma.studentAttendance.findFirst({
         where: {
@@ -25,7 +60,6 @@ export class AttendanceService {
       throw new InternalServerErrorException('Database query failed');
     }
   }
-
   async fetchAttendanceByClassId(class_id: string, school_id: string, username: string) {
     return this.prisma.studentAttendance.findMany({
       where: {
