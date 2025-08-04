@@ -27,7 +27,6 @@ const minutes = String(currentDate.getMinutes()).padStart(2, '0'); // Minutes (0
 // Format: YYYY-MM-DD HH:mm
 const formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}`;
 
-console.log(formattedDateTime); 
 
     const newMessage = await this.prisma.messages.create({
       data: {
