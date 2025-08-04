@@ -1,24 +1,34 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { PrismaService } from '../common/prisma.service';
+import { Body, Controller, Post, Get, Query } from '@nestjs/common';
+import { FeedbackService } from './feedback.service'; // adjust path accordingly
 
 @Controller('feedback')
 export class FeedbackController {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly feedbackService: FeedbackService) {}
 
   @Post()
   async storeFeedback(@Body() body: any) {
     const { name, email, feedback, schoolId, classId } = body;
 
-    const newFeedback = await this.prisma.feedback.create({
-      data: {
-        name,
-        email,
-        feedback,
-        school_id: parseInt(schoolId),
-        class_id: parseInt(classId),
-      },
+    // Delegate creation to feedbackService
+    const newFeedback = await this.feedbackService.createFeedback({
+      name,
+      email,
+      feedback,
+      school_id: parseInt(schoolId, 10),
+      class_id: parseInt(classId, 10),
     });
 
     return { status: 'success', data: newFeedback };
+  }
+
+  @Get('list')
+  async getFeedbacks(
+    @Query('school_id') school_id?: number,
+  ) {
+    if (!school_id) {
+      throw new Error('school_id query parameter is required');
+    }
+
+    return this.feedbackService.getFeedbackBySchool({school_id});
   }
 }

@@ -15,6 +15,7 @@ import { AdminModule } from './admin/admin.module';
 import {AuthModule } from './auth/auth.module';
 import { AttendanceUserModule } from './attendance-user/attendance-user.module'
 import { MessagesModule } from './messages/messages.module';
+import { LeaveRequestModule } from './leave_request/leave-request.module';
 @Module({
   imports: [
       StudentsModule,
@@ -30,8 +31,8 @@ import { MessagesModule } from './messages/messages.module';
      AdminModule,
      AuthModule,
      AttendanceUserModule,
-     MessagesModule
-
+     MessagesModule,
+     LeaveRequestModule
   ],
   controllers: [AppController],
   providers: [AppService],

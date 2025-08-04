@@ -3,27 +3,28 @@ import { PrismaService } from '../common/prisma.service';
 
 @Injectable()
 export class FeedbackService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async createFeedback(data: {
     name: string;
     email: string;
     feedback: string;
-    schoolId: number;
-    classId: number;
+    school_id: number;
+    class_id: number;
   }) {
-    const { name, email, feedback, schoolId, classId } = data;
+    return this.prisma.feedback.create({ data });
+  }
 
-    await this.prisma.feedback.create({
-      data: {
-        name,
-        email,
-        feedback,
-        school_id: schoolId,
-        class_id: classId,
-      },
+  async getFeedbackBySchool(params: {
+    school_id: number;
+  }) {
+    const { school_id} = params;
+const schoolId = Number(school_id);
+    const where: any = { school_id:schoolId };
+
+    return this.prisma.feedback.findMany({
+      where,
+      orderBy: { id: 'asc' },
     });
-
-    return { message: 'Feedback successfully submitted' };
   }
 }
