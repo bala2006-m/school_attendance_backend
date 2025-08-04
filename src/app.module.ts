@@ -16,9 +16,11 @@ import {AuthModule } from './auth/auth.module';
 import { AttendanceUserModule } from './attendance-user/attendance-user.module'
 import { MessagesModule } from './messages/messages.module';
 import { LeaveRequestModule } from './leave_request/leave-request.module';
+import { NewsModule } from './news/news.module';
+
 @Module({
   imports: [
-      StudentsModule,
+    StudentsModule,
     HolidaysModule,
     AttendanceModule,
      StaffModule,
@@ -32,7 +34,8 @@ import { LeaveRequestModule } from './leave_request/leave-request.module';
      AuthModule,
      AttendanceUserModule,
      MessagesModule,
-     LeaveRequestModule
+     LeaveRequestModule,
+     NewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
