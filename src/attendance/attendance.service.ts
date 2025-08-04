@@ -26,6 +26,32 @@ export class AttendanceService {
     }
   }
 
+  async checkAttendanceExistsSession(
+  schoolId: string,
+  classId: string,
+  date: string,
+  session: 'FN' | 'AN'
+): Promise<boolean> {
+  try {
+    const statusField = session === 'FN' ? 'fn_status' : 'an_status';
+
+    const exists = await this.prisma.studentAttendance.findFirst({
+      where: {
+        school_id: Number(schoolId),
+        class_id: Number(classId),
+        date: new Date(date),
+        [statusField]: {
+          in: ['P', 'A'],
+        },
+      },
+    });
+
+    return !!exists;
+  } catch (error) {
+    throw new InternalServerErrorException('Database query failed');
+  }
+}
+
   async fetchAttendanceByClassId(class_id: string, school_id: string, username: string) {
     return this.prisma.studentAttendance.findMany({
       where: {
