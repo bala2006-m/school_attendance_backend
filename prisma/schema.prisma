@@ -29,10 +29,10 @@ model Attendance_user {
   role      String
   school_id Int
 
-  school  School   @relation(fields: [school_id], references: [id])
-  staff   Staff?   @relation("UserToStaff")
-  student Student?
-  admin   Admin?
+  school   School    @relation(fields: [school_id], references: [id])
+  staff    Staff?    @relation("UserToStaff")
+  students Student[]
+  admin    Admin?
 
   @@index([school_id])
 }
@@ -191,7 +191,9 @@ model Admin {
   id          Int     @id @default(autoincrement())
   name        String?
   designation String
+  gender      String  @default("null")
   mobile      String  @unique
+  email       String  @default("example@gmail.com")
   photo       Bytes?
   username    String  @unique
   school_id   Int
@@ -214,17 +216,17 @@ model Messages {
 }
 
 model LeaveRequest {
-  id           Int       @id @default(autoincrement())
-  username     String    // The user requesting leave
-  role         Role      @default(student)  // Role of requester (optional, helpful for logic)
-  school_id    Int
-  class_id     Int
-  from_date    DateTime  // Leave start date
-  to_date      DateTime  // Leave end date
-  reason       String?   // Optional leave reason
-  status       String    @default("pending") // "pending", "approved", "rejected"
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  username   String // The user requesting leave
+  role       Role     @default(student) // Role of requester (optional, helpful for logic)
+  school_id  Int
+  class_id   Int
+  from_date  DateTime // Leave start date
+  to_date    DateTime // Leave end date
+  reason     String? // Optional leave reason
+  status     String   @default("pending") // "pending", "approved", "rejected"
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([username])
   @@index([school_id, class_id])

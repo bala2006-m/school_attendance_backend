@@ -1,42 +1,47 @@
-import { IsIn, IsNotEmpty, IsString, IsNumberString } from 'class-validator';
+import { IsString, IsOptional, IsIn } from 'class-validator';
 export enum Gender {
   M = 'M',
   F = 'F',
   O = 'O',
 }
 export class RegisterDesignationDto {
-
   @IsString()
-  @IsNotEmpty()
   username: string;
 
+  @IsOptional()
   @IsString()
-  designation: string;
-
-
-  email: string;
-
-  @IsNumberString()
-  @IsNotEmpty()
-  school_id: string;
-
-
-  classId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  mobile: string;
-
-  @IsIn(['admin', 'staff', 'students'])
-  table: string;
-
-
   name: string;
 
-
+  @IsOptional()
+  @IsString()
   gender: Gender;
 
+  @IsOptional()
+  @IsString()
+  role: string;
 
-  password: string;
+  @IsOptional()
+  @IsString()
+  designation: string; // Only for admin & staff
 
+  @IsString()
+  school_id: string;
+
+  @IsString()
+  mobile: string;
+
+  @IsOptional()
+  @IsString()
+  email: string;
+
+  @IsOptional()
+  @IsString()
+  class_id: string; // Only for students
+
+  @IsOptional()
+  @IsString()
+  password?: string;
+
+  @IsIn(['admin', 'staff', 'students'])
+  table: 'admin' | 'staff' | 'students';  // To identify role/table
 }

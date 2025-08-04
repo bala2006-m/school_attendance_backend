@@ -24,7 +24,7 @@ const schoolId = Number(school_id);
 
     return this.prisma.feedback.findMany({
       where,
-      orderBy: { id: 'asc' },
+      orderBy: { id: 'desc' },
     });
   }
 }
