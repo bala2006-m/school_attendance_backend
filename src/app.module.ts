@@ -6,7 +6,6 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { StaffModule } from './staff/staff.module';
 import { StudentsModule } from './students/students.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { DbModule } from './db/db.module';
 import { ClassTimetableModule } from './timetable/class-timetable.module';
 import {FeedbackModule} from './feedback/feedback.module';
 import { SchoolsModule } from './school/schools.module';
@@ -25,7 +24,6 @@ import { NewsModule } from './news/news.module';
     AttendanceModule,
      StaffModule,
      DashboardModule,
-     DbModule,
      ClassTimetableModule,
      FeedbackModule,
      SchoolsModule,
