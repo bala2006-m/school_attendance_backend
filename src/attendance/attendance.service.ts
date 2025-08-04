@@ -110,6 +110,7 @@ export class AttendanceService {
         fn_status: true,
         an_status: true,
       },
+      
     });
   }
 

@@ -16,6 +16,7 @@ export class ClassesService {
        },
        orderBy: {
          class: 'asc',
+         section:'asc',
        },
      });
    }
@@ -159,6 +160,7 @@ async findClassId(school_id: string, className: string, section: string): Promis
       },
       orderBy: {
         class: 'asc',
+        section:'asc'
       },
     });
   }

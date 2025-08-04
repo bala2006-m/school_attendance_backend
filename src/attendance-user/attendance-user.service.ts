@@ -52,6 +52,7 @@ async deleteUser(
         school_id: true,
         password:true,
       },
+       orderBy: { username: 'asc' },
     });
   }
 }

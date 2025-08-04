@@ -36,6 +36,7 @@ export class AdminService {
           photo: true,
           school_id: true,
         },
+         orderBy: { name: 'asc' },
       });
 
       return admins.map((admin) => ({
