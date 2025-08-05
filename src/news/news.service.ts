@@ -17,10 +17,10 @@ export class NewsService {
           : '(sports OR games OR athletics OR students OR kids OR children)';
 
       // ✅ Tamil Nadu priority news
-      const tnUrl = `https://gnews.io/api/v4/search?q="Tamil Nadu" ${keywords ? 'AND ' + keywords : ''}&lang=${language}&max=10&sortby=publishedAt&token=${this.API_KEY}`;
+      const tnUrl = `https://gnews.io/api/v4/search?q="Tamil Nadu" AND ${keywords}&lang=${language}&max=10&sortby=publishedAt&token=${this.API_KEY}`;
 
       // ✅ India-wide fallback news
-      const indiaUrl = `https://gnews.io/api/v4/search?q="India" ${keywords ? 'AND ' + keywords : ''}&lang=${language}&max=10&sortby=publishedAt&token=${this.API_KEY}`;
+      const indiaUrl = `https://gnews.io/api/v4/search?q="India" AND ${keywords}&lang=${language}&max=10&sortby=publishedAt&token=${this.API_KEY}`;
 
       // Fetch both in parallel
       const [tnResponse, indiaResponse] = await Promise.all([
@@ -28,13 +28,13 @@ export class NewsService {
         axios.get(indiaUrl),
       ]);
 
-      // ✅ Format news articles
-      const formatArticles = (articles) =>
-        articles.map((news) => ({
+      // ✅ Safe extractor
+      const formatArticles = (articles: any[]) =>
+        (articles || []).map((news) => ({
           title: news.title,
           description: news.description,
-          image: news.urlToImage,
-          source: news.source.name,
+          image: news.image, // ✅ GNews uses `image`
+          source: news.source?.name || 'Unknown',
           publishedAt: news.publishedAt,
           url: news.url,
           language,
@@ -46,18 +46,20 @@ export class NewsService {
       // ✅ Merge (Tamil Nadu first, then India)
       const combined = [...tnNews, ...indiaNews];
 
-      // ✅ Sort to prioritize student-related keywords (boost ranking)
+      // ✅ Sort to prioritize student-related keywords
+      const boostKeywords = ['students', 'kids', 'school', 'children'];
       const boosted = combined.sort((a, b) => {
-        const boostKeywords = ['students', 'kids', 'school', 'children'];
         const score = (title: string) =>
-          boostKeywords.filter((kw) => title?.toLowerCase().includes(kw))
-            .length;
-        return score(b.title) - score(a.title); // Higher keyword match first
+          boostKeywords.filter((kw) => title?.toLowerCase().includes(kw)).length;
+        return score(b.title) - score(a.title);
       });
 
       return boosted;
     } catch (error) {
-      throw new Error('Failed to fetch news: ' + error.message);
+      console.error('❌ Error fetching news:', error.response?.data || error.message);
+      throw new Error(
+        'Failed to fetch news: ' + (error.response?.data?.message || error.message),
+      );
     }
   }
 }

@@ -9,7 +9,7 @@ import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { RegisterDesignationDto } from './dto/register-designation.dto';
 import { RegisterStudentDto } from './dto/register-student.dto';
-import { log } from 'console';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class AuthService {
@@ -97,7 +97,6 @@ export class AuthService {
             designation,
             school_id: schoolIdInt,
             mobile,
-            password: '',
             email: '',
           },
         });
@@ -115,7 +114,6 @@ export class AuthService {
             gender,
             school_id: schoolIdInt,
             mobile,
-            password: '',
             class_id: classIdInt,
             email,
           },
@@ -159,7 +157,6 @@ export class AuthService {
           mobile,
           class_id: Number(class_id),
           school_id: Number(school_id),
-          password: '', // if password is required later
         },
       });
 
@@ -188,7 +185,6 @@ export class AuthService {
       password,
       table,
     } = dto;
-    
 
     // ✅ Detect fully empty rows
     if (
@@ -224,11 +220,12 @@ export class AuthService {
         const attendanceUser = await this.prisma.attendance_user.findUnique({
           where: { username },
         });
+        const hashedPassword = await bcrypt.hash(password, 10);
         if (!attendanceUser) {
           await this.prisma.attendance_user.create({
             data: {
               username,
-              password: password || '',
+              password: hashedPassword || '',
               role: 'admin',
               school_id: schoolIdInt,
             },
@@ -263,11 +260,12 @@ export class AuthService {
         const attendanceUser = await this.prisma.attendance_user.findUnique({
           where: { username },
         });
+        const hashedPassword = await bcrypt.hash(password, 10);
         if (!attendanceUser) {
           await this.prisma.attendance_user.create({
             data: {
               username,
-              password: password || '',
+              password: hashedPassword || '',
               role: 'staff',
               school_id: schoolIdInt,
             },
@@ -283,7 +281,6 @@ export class AuthService {
             school_id: schoolIdInt,
             mobile,
             email,
-            password: password || '',
           },
         });
       },
@@ -303,11 +300,13 @@ export class AuthService {
         const attendanceUser = await this.prisma.attendance_user.findUnique({
           where: { username },
         });
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         if (!attendanceUser) {
           await this.prisma.attendance_user.create({
             data: {
               username,
-              password: password || '',
+              password: hashedPassword || '',
               role: 'student',
               school_id: schoolIdInt,
             },
@@ -324,7 +323,6 @@ export class AuthService {
             photo: null,
             school_id: schoolIdInt,
             class_id: Number(classIdInt),
-            password: password || '',
           },
         });
       },
@@ -334,5 +332,52 @@ export class AuthService {
     if (!insertFn) throw new BadRequestException('Invalid table name');
 
     return await insertFn();
+  }
+
+  async sendOtp(email: string, otp: string) {
+    // ✅ Create Nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'Noreply.ramchintech@gmail.com', // Your Gmail
+        pass: 'zkvb rmyu yqtm ipgv',       // Use Gmail App Password
+      },
+    });
+
+    // ✅ Email options
+    const mailOptions = {
+      from: 'balam20000002@gmail.com',
+      to: email,
+      subject: 'Your OTP Code',
+      text: `Your OTP code is: ${otp}`,
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      return { status: 'success', message: 'OTP sent successfully' };
+    } catch (error) {
+      console.error('Email send error:', error);
+      throw new BadRequestException({ status: 'error', message: 'Failed to send OTP' });
+    }
+  }
+
+   // ✅ Update Password Logic
+  async updatePassword(username: string, newPassword: string) {
+    // Check if user exists
+    const user = await this.prisma.attendance_user.findUnique({ where: { username } });
+    if (!user) {
+      throw new BadRequestException({ status: 'error', message: 'User not found' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password in DB
+    await this.prisma.attendance_user.update({
+      where: { username },
+      data: { password: hashedPassword },
+    });
+
+    return { status: 'success', message: 'Password updated successfully' };
   }
 }

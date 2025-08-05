@@ -65,7 +65,6 @@ export class StudentsService {
         mobile: dto.mobile,
         class_id: Number(dto.class_id),
         school_id: Number(dto.school_id),
-        password: hashedPassword,
       },
     });
 
