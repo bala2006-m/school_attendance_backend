@@ -169,17 +169,17 @@ const id = parseInt(schoolId, 10);
       }
       return this.staffService.deleteStaff(username);
     }
-@Put('change-password')
-  async changePassword(@Body() dto: ChangeStaffPasswordDto) {
-    return this.staffService.changePassword(dto);
-  }
-@Get('count')
-  async countStaff(@Query('school_id') schoolId: string) {
-    if (!schoolId) {
-      throw new BadRequestException('Missing or empty school_id');
-    }
+// @Put('change-password')
+//   async changePassword(@Body() dto: ChangeStaffPasswordDto) {
+//     return this.staffService.changePassword(dto);
+//   }
+// @Get('count')
+//   async countStaff(@Query('school_id') schoolId: string) {
+//     if (!schoolId) {
+//       throw new BadRequestException('Missing or empty school_id');
+//     }
 
-    return this.staffService.countStaffBySchoolId(+schoolId);
-  }
+//     return this.staffService.countStaffBySchoolId(+schoolId);
+//   }
 
 }

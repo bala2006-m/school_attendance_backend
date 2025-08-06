@@ -93,7 +93,6 @@ async findByMobile(mobile: string) {
         gender: dto.gender,
         mobile: dto.mobile,
         school_id: dto.school_id,
-        password: hashed,
       },
     });
 
@@ -146,42 +145,42 @@ async deleteStaff(username: string) {
   return { status: 'success', message: `Staff '${username}' deleted.` };
 }
 
-async changePassword(dto: ChangeStaffPasswordDto) {
-  const staff = await this.prisma.staff.findUnique({
-    where: { username: dto.username },
-  });
+// async changePassword(dto: ChangeStaffPasswordDto) {
+//   const staff = await this.prisma.staff.findUnique({
+//     where: { username: dto.username },
+//   });
 
-  if (!staff) {
-    return { status: 'error', message: 'Staff not found' };
-  }
+//   if (!staff) {
+//     return { status: 'error', message: 'Staff not found' };
+//   }
 
-  const valid = await bcrypt.compare(dto.old_password, staff.password);
+//   const valid = await bcrypt.compare(dto.old_password, staff.password);
 
-  if (!valid) {
-    return { status: 'error', message: 'Incorrect old password' };
-  }
+//   if (!valid) {
+//     return { status: 'error', message: 'Incorrect old password' };
+//   }
 
-  const hashed = await bcrypt.hash(dto.new_password, 10);
+//   const hashed = await bcrypt.hash(dto.new_password, 10);
 
-  await this.prisma.staff.update({
-    where: { username: dto.username },
-    data: { password: hashed },
-  });
+//   await this.prisma.staff.update({
+//     where: { username: dto.username },
+//     data: { password: hashed },
+//   });
 
-  return { status: 'success', message: 'Password updated successfully' };
-}
-async countStaffBySchoolId(schoolId: number) {
-    const count = await this.prisma.staff.count({
-      where: {
-        school_id: schoolId,
-      },
-    });
+//   return { status: 'success', message: 'Password updated successfully' };
+// }
+// async countStaffBySchoolId(schoolId: number) {
+//     const count = await this.prisma.staff.count({
+//       where: {
+//         school_id: schoolId,
+//       },
+//     });
 
-    return {
-      status: 'success',
-      count,
-    };
-  }
+//     return {
+//       status: 'success',
+//       count,
+//     };
+//   }
 
 
 }

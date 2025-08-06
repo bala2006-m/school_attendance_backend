@@ -226,4 +226,41 @@ export class AuthController {
         throw new BadRequestException('Unknown table');
     }
   }
+
+   @Post('send_otp')
+  async sendOtp(@Body() body: { email: string; otp: string }) {
+    const { email, otp } = body;
+
+    // ✅ Validate email
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new BadRequestException({ status: 'error', message: 'A valid email is required' });
+    }
+
+    // ✅ Validate OTP
+    if (!otp) {
+      throw new BadRequestException({ status: 'error', message: 'OTP is missing' });
+    }
+
+    // ✅ Call service to send email
+    return this.authService.sendOtp(email, otp);
+  }
+
+  // ✅ Update Password using Username
+  @Post('update_password')
+  async updatePassword(@Body() body: { username: string; newPassword: string }) {
+    const { username, newPassword } = body;
+
+    // Input validation
+    if (!username) {
+      throw new BadRequestException({ status: 'error', message: 'Username is required' });
+    }
+    if (!newPassword || newPassword.length < 6) {
+      throw new BadRequestException({
+        status: 'error',
+        message: 'Password must be at least 6 characters long',
+      });
+    }
+
+    return this.authService.updatePassword(username, newPassword);
+  }
 }

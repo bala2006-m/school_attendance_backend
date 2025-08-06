@@ -96,7 +96,6 @@ model Staff {
   gender      Gender?
   mobile      String  @unique
   school_id   Int
-  password    String
 
   school      School            @relation(fields: [school_id], references: [id])
   user        Attendance_user   @relation("UserToStaff", fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
@@ -130,7 +129,6 @@ model Student {
   class_id  Int
   school_id Int
   photo     Bytes?
-  password  String
 
   class      Classes             @relation(fields: [class_id], references: [id])
   school     School              @relation(fields: [school_id], references: [id])
