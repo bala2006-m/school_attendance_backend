@@ -85,6 +85,7 @@ async getByUsername(@Query('username') username: string) {
           school_id: staff.school_id,
           name: staff.name,
           designation: staff.designation,
+          email:staff.email,
           gender: staff.gender,
           mobile: staff.mobile,
         },
@@ -173,13 +174,13 @@ const id = parseInt(schoolId, 10);
 //   async changePassword(@Body() dto: ChangeStaffPasswordDto) {
 //     return this.staffService.changePassword(dto);
 //   }
-// @Get('count')
-//   async countStaff(@Query('school_id') schoolId: string) {
-//     if (!schoolId) {
-//       throw new BadRequestException('Missing or empty school_id');
-//     }
+@Get('count')
+  async countStaff(@Query('school_id') schoolId: string) {
+    if (!schoolId) {
+      throw new BadRequestException('Missing or empty school_id');
+    }
 
-//     return this.staffService.countStaffBySchoolId(+schoolId);
-//   }
+    return this.staffService.countStaffBySchoolId(+schoolId);
+  }
 
 }

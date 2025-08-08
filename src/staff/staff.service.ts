@@ -47,6 +47,7 @@ async findByUsername(username: string) {
         school_id: true,
         name: true,
         designation: true,
+        email:true,
         gender: true,
         mobile: true,
       },
@@ -169,18 +170,18 @@ async deleteStaff(username: string) {
 
 //   return { status: 'success', message: 'Password updated successfully' };
 // }
-// async countStaffBySchoolId(schoolId: number) {
-//     const count = await this.prisma.staff.count({
-//       where: {
-//         school_id: schoolId,
-//       },
-//     });
+async countStaffBySchoolId(schoolId: number) {
+    const count = await this.prisma.staff.count({
+      where: {
+        school_id: schoolId,
+      },
+    });
 
-//     return {
-//       status: 'success',
-//       count,
-//     };
-//   }
+    return {
+      status: 'success',
+      count,
+    };
+  }
 
 
 }

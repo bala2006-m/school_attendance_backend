@@ -14,6 +14,7 @@ export class AdminService {
           name: true,
           designation: true,
           mobile:true,
+          email:true,
           photo: true,
           school_id: true,
         },
