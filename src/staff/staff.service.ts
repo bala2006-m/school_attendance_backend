@@ -30,6 +30,8 @@ export class StaffService {
         email: true,
         name: true,
         mobile: true,
+        photo: true,
+        class_ids: true,
         gender: true,
         designation: true,
         school_id: true,
@@ -45,7 +47,9 @@ export class StaffService {
           school_id: true,
           name: true,
           designation: true,
-          email:true,
+          photo: true,
+          class_ids: true,
+          email: true,
           gender: true,
           mobile: true,
         },
@@ -81,17 +85,21 @@ export class StaffService {
     }
 
     const hashed = await bcrypt.hash(dto.password, 10);
-
+    const data1: any = {
+      username: dto.username,
+      designation: dto.designation,
+      name: dto.name,
+      email: dto.email,
+      gender: dto.gender,
+      mobile: dto.mobile,
+      class_ids: dto.class_ids,
+      school_id: dto.school_id,
+    };
+    if (dto.photo) {
+      data1.photo = Buffer.from(data1.photo, 'base64');
+    }
     const staff = await this.prisma.staff.create({
-      data: {
-        username: dto.username,
-        designation: dto.designation,
-        name: dto.name,
-        email: dto.email,
-        gender: dto.gender,
-        mobile: dto.mobile,
-        school_id: dto.school_id,
-      },
+      data: data1,
     });
 
     return { status: 'success', staff };
@@ -105,6 +113,8 @@ export class StaffService {
         designation: true,
         name: true,
         email: true,
+        photo: true,
+        class_ids: true,
         gender: true,
         mobile: true,
       },
@@ -168,15 +178,15 @@ export class StaffService {
   //   return { status: 'success', message: 'Password updated successfully' };
   // }
   async countStaffBySchoolId(schoolId: number) {
-      const count = await this.prisma.staff.count({
-        where: {
-          school_id: schoolId,
-        },
-      });
+    const count = await this.prisma.staff.count({
+      where: {
+        school_id: schoolId,
+      },
+    });
 
-      return {
-        status: 'success',
-        count,
-      };
-    }
+    return {
+      status: 'success',
+      count,
+    };
+  }
 }
