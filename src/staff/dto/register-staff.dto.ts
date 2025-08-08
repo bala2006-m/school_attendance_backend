@@ -32,6 +32,12 @@ export class RegisterStaffDto {
   mobile: string;
 
   @IsString()
+  photo?: string;
+
+  @IsString()
+  class_ids: number[];
+
+  @IsString()
   school_id: number;
 
   @IsString()

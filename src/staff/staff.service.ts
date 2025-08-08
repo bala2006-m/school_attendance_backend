@@ -30,6 +30,8 @@ export class StaffService {
         email: true,
         name: true,
         mobile: true,
+        photo: true,
+        class_ids: true,
         gender: true,
         designation: true,
         school_id: true,
@@ -37,42 +39,39 @@ export class StaffService {
     });
   }
 
-
-
-
-async findByUsername(username: string) {
-  try {
-    return await this.prisma.staff.findUnique({
-      where: { username },
-      select: {
-        school_id: true,
-        name: true,
-        designation: true,
-        gender: true,
-        mobile: true,
-      },
-    });
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
+  async findByUsername(username: string) {
+    try {
+      return await this.prisma.staff.findUnique({
+        where: { username },
+        select: {
+          school_id: true,
+          name: true,
+          designation: true,
+          email:true,
+          gender: true,
+          mobile: true,
+        },
+      });
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw error;
+    }
   }
-}
-async findByMobile(mobile: string) {
-  try {
-    var mobile=`+91${mobile}`;
-  
-    
-    return await this.prisma.staff.findUnique({
-      where: { mobile },
-      select: {
-        username:true,
-      },
-    });
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
+  async findByMobile(mobile: string) {
+    try {
+      var mobile = `+91${mobile}`;
+
+      return await this.prisma.staff.findUnique({
+        where: { mobile },
+        select: {
+          username: true,
+        },
+      });
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw error;
+    }
   }
-}
 
   async register(dto: RegisterStaffDto) {
     const exists = await this.prisma.staff.findUnique({
@@ -84,17 +83,21 @@ async findByMobile(mobile: string) {
     }
 
     const hashed = await bcrypt.hash(dto.password, 10);
-
+    const data1: any = {
+      username: dto.username,
+      designation: dto.designation,
+      name: dto.name,
+      email: dto.email,
+      gender: dto.gender,
+      mobile: dto.mobile,
+      class_ids: dto.class_ids,
+      school_id: dto.school_id,
+    };
+    if (dto.photo) {
+      data1.photo = Buffer.from(data1.photo, 'base64');
+    }
     const staff = await this.prisma.staff.create({
-      data: {
-        username: dto.username,
-        designation: dto.designation,
-        name: dto.name,
-        email: dto.email,
-        gender: dto.gender,
-        mobile: dto.mobile,
-        school_id: dto.school_id,
-      },
+      data: data1,
     });
 
     return { status: 'success', staff };
@@ -108,6 +111,8 @@ async findByMobile(mobile: string) {
         designation: true,
         name: true,
         email: true,
+        photo: true,
+        class_ids: true,
         gender: true,
         mobile: true,
       },
@@ -168,21 +173,18 @@ async findByMobile(mobile: string) {
   //     data: { password: hashed },
   //   });
 
-//   return { status: 'success', message: 'Password updated successfully' };
-// }
-// async countStaffBySchoolId(schoolId: number) {
-//     const count = await this.prisma.staff.count({
-//       where: {
-//         school_id: schoolId,
-//       },
-//     });
+  //   return { status: 'success', message: 'Password updated successfully' };
+  // }
+  async countStaffBySchoolId(schoolId: number) {
+      const count = await this.prisma.staff.count({
+        where: {
+          school_id: schoolId,
+        },
+      });
 
-//     return {
-//       status: 'success',
-//       count,
-//     };
-//   }
-
-
+      return {
+        status: 'success',
+        count,
+      };
+    }
 }
-
