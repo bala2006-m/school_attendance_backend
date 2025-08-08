@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException,BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { RegisterStaffDto } from './dto/register-staff.dto';
 import * as bcrypt from 'bcrypt';
@@ -7,15 +11,13 @@ import { UpdateStaffDto } from './dto/update-staff.dto';
 @Injectable()
 export class StaffService {
   constructor(private prisma: PrismaService) {}
- async updateProfile(username: string, data: UpdateStaffDto) {
+  async updateProfile(username: string, data: UpdateStaffDto) {
     return this.prisma.staff.update({
       where: { username },
       data,
     });
   }
   async getProfileByUsername(username: string) {
-
-
     if (!username) {
       throw new BadRequestException('Username is required');
     }
@@ -33,45 +35,41 @@ export class StaffService {
         school_id: true,
       },
     });
-
   }
 
-
-
-
-async findByUsername(username: string) {
-  try {
-    return await this.prisma.staff.findUnique({
-      where: { username },
-      select: {
-        school_id: true,
-        name: true,
-        designation: true,
-        gender: true,
-        mobile: true,
-      },
-    });
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
+  async findByUsername(username: string) {
+    try {
+      return await this.prisma.staff.findUnique({
+        where: { username },
+        select: {
+          school_id: true,
+          name: true,
+          designation: true,
+          email:true,
+          gender: true,
+          mobile: true,
+        },
+      });
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw error;
+    }
   }
-}
-async findByMobile(mobile: string) {
-  try {
-    var mobile=`+91${mobile}`;
-  
-    
-    return await this.prisma.staff.findUnique({
-      where: { mobile },
-      select: {
-        username:true,
-      },
-    });
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
+  async findByMobile(mobile: string) {
+    try {
+      var mobile = `+91${mobile}`;
+
+      return await this.prisma.staff.findUnique({
+        where: { mobile },
+        select: {
+          username: true,
+        },
+      });
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw error;
+    }
   }
-}
 
   async register(dto: RegisterStaffDto) {
     const exists = await this.prisma.staff.findUnique({
@@ -119,69 +117,66 @@ async findByMobile(mobile: string) {
       staff: staffList,
     };
   }
-async updateStaff(username: string, dto: UpdateStaffDto) {
-  const staff = await this.prisma.staff.findUnique({ where: { username } });
+  async updateStaff(username: string, dto: UpdateStaffDto) {
+    const staff = await this.prisma.staff.findUnique({ where: { username } });
 
-  if (!staff) {
-    return { status: 'error', message: 'Staff not found' };
+    if (!staff) {
+      return { status: 'error', message: 'Staff not found' };
+    }
+
+    const updated = await this.prisma.staff.update({
+      where: { username },
+      data: dto,
+    });
+
+    return { status: 'success', staff: updated };
+  }
+  async deleteStaff(username: string) {
+    const exists = await this.prisma.staff.findUnique({ where: { username } });
+
+    if (!exists) {
+      return { status: 'error', message: 'Staff not found' };
+    }
+
+    await this.prisma.staff.delete({ where: { username } });
+
+    return { status: 'success', message: `Staff '${username}' deleted.` };
   }
 
-  const updated = await this.prisma.staff.update({
-    where: { username },
-    data: dto,
-  });
+  // async changePassword(dto: ChangeStaffPasswordDto) {
+  //   const staff = await this.prisma.staff.findUnique({
+  //     where: { username: dto.username },
+  //   });
 
-  return { status: 'success', staff: updated };
+  //   if (!staff) {
+  //     return { status: 'error', message: 'Staff not found' };
+  //   }
+
+  //   const valid = await bcrypt.compare(dto.old_password, staff.password);
+
+  //   if (!valid) {
+  //     return { status: 'error', message: 'Incorrect old password' };
+  //   }
+
+  //   const hashed = await bcrypt.hash(dto.new_password, 10);
+
+  //   await this.prisma.staff.update({
+  //     where: { username: dto.username },
+  //     data: { password: hashed },
+  //   });
+
+  //   return { status: 'success', message: 'Password updated successfully' };
+  // }
+  async countStaffBySchoolId(schoolId: number) {
+      const count = await this.prisma.staff.count({
+        where: {
+          school_id: schoolId,
+        },
+      });
+
+      return {
+        status: 'success',
+        count,
+      };
+    }
 }
-async deleteStaff(username: string) {
-  const exists = await this.prisma.staff.findUnique({ where: { username } });
-
-  if (!exists) {
-    return { status: 'error', message: 'Staff not found' };
-  }
-
-  await this.prisma.staff.delete({ where: { username } });
-
-  return { status: 'success', message: `Staff '${username}' deleted.` };
-}
-
-// async changePassword(dto: ChangeStaffPasswordDto) {
-//   const staff = await this.prisma.staff.findUnique({
-//     where: { username: dto.username },
-//   });
-
-//   if (!staff) {
-//     return { status: 'error', message: 'Staff not found' };
-//   }
-
-//   const valid = await bcrypt.compare(dto.old_password, staff.password);
-
-//   if (!valid) {
-//     return { status: 'error', message: 'Incorrect old password' };
-//   }
-
-//   const hashed = await bcrypt.hash(dto.new_password, 10);
-
-//   await this.prisma.staff.update({
-//     where: { username: dto.username },
-//     data: { password: hashed },
-//   });
-
-//   return { status: 'success', message: 'Password updated successfully' };
-// }
-// async countStaffBySchoolId(schoolId: number) {
-//     const count = await this.prisma.staff.count({
-//       where: {
-//         school_id: schoolId,
-//       },
-//     });
-
-//     return {
-//       status: 'success',
-//       count,
-//     };
-//   }
-
-
-}
-
