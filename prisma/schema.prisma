@@ -64,6 +64,7 @@ model Classes {
 
   school            School              @relation(fields: [school_id], references: [id])
   holidays          Holidays[]          @relation("HolidayClasses")
+  staff             Staff[]             @relation("class_ids")
   students          Student[]
   studentAttendance StudentAttendance[]
   classTimetables   ClassTimetable[]
@@ -96,10 +97,13 @@ model Staff {
   gender      Gender?
   mobile      String  @unique
   school_id   Int
+  class_ids   Json    @default("null")
+  photo       Bytes?  @default("null")
 
   school      School            @relation(fields: [school_id], references: [id])
   user        Attendance_user   @relation("UserToStaff", fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
   attendances StaffAttendance[]
+  classes     Classes[]         @relation("class_ids")
 
   @@index([username])
   @@index([school_id])
