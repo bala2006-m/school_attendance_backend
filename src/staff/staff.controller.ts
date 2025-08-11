@@ -59,6 +59,7 @@ export class StaffController {
             gender: staff.gender,
             mobile: staff.mobile,
             class_ids:staff.class_ids
+            photo:staff.photo,
           },
         };
       } else {
@@ -99,6 +100,7 @@ export class StaffController {
           gender: staff.gender,
           mobile: staff.mobile,
           class_ids:staff.class_ids,
+          photo:staff.photo
         },
       };
     } else {
