@@ -9,6 +9,17 @@ export class StudentsController {
   async getSchoolAndClass(@Query('username') username: string) {
     return this.studentsService.getSchoolAndClassByUsername(username);
   }
+  @Put('update')
+async updateStudent(
+  @Query('username') username: string,
+  @Body() dto: UpdateStudentDto,
+) {
+  if (!username) {
+    return { status: 'error', message: 'Missing username' };
+  }
+
+  return this.studentsService.updateStudent(username, dto);
+}
 @Get('fetch_all_student_data')
   async fetchAllStudents(@Query('school_id') schoolId?: string) {
     return this.studentsService.getAllStudents(schoolId);
