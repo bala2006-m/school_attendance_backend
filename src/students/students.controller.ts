@@ -2,6 +2,8 @@ import { BadRequestException ,Body, Post, Controller, Get,Delete,Put, Query } fr
 import { StudentsService } from './students.service';
 import { RegisterStudentDto } from './dto/register-student.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateStudentDto } from './dto/update-student.dto';
+
 @Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
