@@ -12,9 +12,24 @@ import { UpdateStaffDto } from './dto/update-staff.dto';
 export class StaffService {
   constructor(private prisma: PrismaService) {}
   async updateProfile(username: string, data: UpdateStaffDto) {
+    
+  // Separate the photo from other fields
+  const { photo, ...restDto } = dto;
+
+  // Prepare update data
+  const updateData: any = { ...restDto };
+
+  // If photo is given, convert from base64 string to Bytes
+  if (photo) {
+    try {
+      updateData.photo = Buffer.from(photo, 'base64');
+    } catch {
+      return { status: 'error', message: 'Invalid photo format' };
+    }
+  }
     return this.prisma.staff.update({
       where: { username },
-      data,
+      data:updateData,
     });
   }
   async getProfileByUsername(username: string) {
