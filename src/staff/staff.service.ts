@@ -33,6 +33,7 @@ export class StaffService {
         gender: true,
         designation: true,
         school_id: true,
+        class_ids:true,
       },
     });
   }
@@ -50,6 +51,7 @@ async findByUsername(username: string) {
         designation: true,
         gender: true,
         mobile: true,
+        class_ids:true,
       },
     });
   } catch (error) {
@@ -94,6 +96,7 @@ async findByMobile(mobile: string) {
         gender: dto.gender,
         mobile: dto.mobile,
         school_id: dto.school_id,
+        class_ids:dto.class_ids,
       },
     });
 
@@ -110,6 +113,7 @@ async findByMobile(mobile: string) {
         email: true,
         gender: true,
         mobile: true,
+        class_ids:true,
       },
       orderBy: { name: 'asc' },
     });
@@ -170,18 +174,18 @@ async findByMobile(mobile: string) {
 
 //   return { status: 'success', message: 'Password updated successfully' };
 // }
-// async countStaffBySchoolId(schoolId: number) {
-//     const count = await this.prisma.staff.count({
-//       where: {
-//         school_id: schoolId,
-//       },
-//     });
+async countStaffBySchoolId(schoolId: number) {
+    const count = await this.prisma.staff.count({
+      where: {
+        school_id: schoolId,
+      },
+    });
 
-//     return {
-//       status: 'success',
-//       count,
-//     };
-//   }
+    return {
+      status: 'success',
+      count,
+    };
+  }
 
 
 }
