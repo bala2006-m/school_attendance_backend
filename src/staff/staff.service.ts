@@ -37,7 +37,7 @@ export class StaffService {
       throw new BadRequestException('Username is required');
     }
 
-    return this.prisma.staff.findUnique({
+    const staff=await this.prisma.staff.findUnique({
       where: { username },
       select: {
         id: true,
@@ -49,8 +49,16 @@ export class StaffService {
         designation: true,
         school_id: true,
         class_ids:true,
+        photo:true,
       },
     });
+    if(!staff) return[];
+    return [
+        {
+          ...staff,
+          photo: staff.photo ? Buffer.from(staff.photo).toString('base64') : null,
+        },
+      ];
   }
 
 
@@ -129,6 +137,7 @@ async findByMobile(mobile: string) {
         gender: true,
         mobile: true,
         class_ids:true,
+        photo:true,
       },
       orderBy: { name: 'asc' },
     });
@@ -136,7 +145,12 @@ async findByMobile(mobile: string) {
     return {
       status: 'success',
       count: staffList.length,
-      staff: staffList,
+      staff:
+        {
+          ...staffList,
+          photo: staffList.photo ? Buffer.from(staffList.photo).toString('base64') : null,
+        },
+      ,
     };
   }
   async updateStaff(username: string, dto: UpdateStaffDto) {
