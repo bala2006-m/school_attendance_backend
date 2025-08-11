@@ -58,6 +58,7 @@ export class StaffController {
             designation: staff.designation,
             gender: staff.gender,
             mobile: staff.mobile,
+            class_ids:staff.class_ids
           },
         };
       } else {
@@ -97,6 +98,7 @@ export class StaffController {
           designation: staff.designation,
           gender: staff.gender,
           mobile: staff.mobile,
+          class_ids:staff.class_ids,
         },
       };
     } else {
@@ -183,13 +185,13 @@ export class StaffController {
 //   async changePassword(@Body() dto: ChangeStaffPasswordDto) {
 //     return this.staffService.changePassword(dto);
 //   }
-// @Get('count')
-//   async countStaff(@Query('school_id') schoolId: string) {
-//     if (!schoolId) {
-//       throw new BadRequestException('Missing or empty school_id');
-//     }
+@Get('count')
+  async countStaff(@Query('school_id') schoolId: string) {
+    if (!schoolId) {
+      throw new BadRequestException('Missing or empty school_id');
+    }
 
-//     return this.staffService.countStaffBySchoolId(+schoolId);
-//   }
+    return this.staffService.countStaffBySchoolId(+schoolId);
+  }
 
 }
