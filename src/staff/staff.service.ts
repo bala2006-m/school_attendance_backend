@@ -14,7 +14,7 @@ export class StaffService {
   async updateProfile(username: string, data: UpdateStaffDto) {
     
   // Separate the photo from other fields
-  const { photo, ...restDto } = dto;
+  const { photo, ...restDto } = data;
 
   // Prepare update data
   const updateData: any = { ...restDto };
@@ -37,7 +37,7 @@ export class StaffService {
       throw new BadRequestException('Username is required');
     }
 
-    const staff=await this.prisma.staff.findUnique({
+    return this.prisma.staff.findUnique({
       where: { username },
       select: {
         id: true,
@@ -52,13 +52,7 @@ export class StaffService {
         photo:true,
       },
     });
-    if(!staff) return[];
-    return [
-        {
-          ...staff,
-          photo: staff.photo ? Buffer.from(staff.photo).toString('base64') : null,
-        },
-      ];
+   
   }
 
 
@@ -75,6 +69,7 @@ async findByUsername(username: string) {
         gender: true,
         mobile: true,
         class_ids:true,
+        photo:true,
       },
     });
   } catch (error) {
@@ -145,12 +140,7 @@ async findByMobile(mobile: string) {
     return {
       status: 'success',
       count: staffList.length,
-      staff:
-        {
-          ...staffList,
-          photo: staffList.photo ? Buffer.from(staffList.photo).toString('base64') : null,
-        },
-      ,
+      staff:staffList,
     };
   }
   async updateStaff(username: string, dto: UpdateStaffDto) {
@@ -159,14 +149,20 @@ async findByMobile(mobile: string) {
     if (!staff) {
       return { status: 'error', message: 'Staff not found' };
     }
+    // Separate the photo from other fields
+    const { photo, ...restDto } = dto;
 
-    const updated = await this.prisma.staff.update({
-      where: { username },
-      data: dto,
-    });
+    // Prepare update data
+    const updateData: any = { ...restDto };
 
-    return { status: 'success', staff: updated };
-  }
+    // If photo is given, convert from base64 string to Bytes
+    if (photo) {
+      try {
+        updateData.photo = Buffer.from(photo, 'base64');
+      } catch {
+        return { status: 'error', message: 'Invalid photo format' };
+      }
+    }}
   async deleteStaff(username: string) {
     const exists = await this.prisma.staff.findUnique({ where: { username } });
 
