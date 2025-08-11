@@ -348,4 +348,37 @@ export class StudentsService {
       },
     });
   }
+async updateStudent(username: string, dto: UpdateStudentDto) {
+  const student = await this.prisma.student.findUnique({
+    where: { username },
+  });
+
+  if (!student) {
+    return { status: 'error', message: 'Student not found' };
+  }
+
+  // Separate the photo from other fields
+  const { photo, ...restDto } = dto;
+
+  // Prepare update data
+  const updateData: any = { ...restDto };
+
+  // If photo is given, convert from base64 string to Bytes
+  if (photo) {
+    try {
+      updateData.photo = Buffer.from(photo, 'base64');
+    } catch {
+      return { status: 'error', message: 'Invalid photo format' };
+    }
+  }
+
+  const updated = await this.prisma.student.update({
+    where: { username },
+    data: updateData,
+  });
+
+  return { status: 'success', student: updated };
+}
+
+  
 }
