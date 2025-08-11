@@ -24,6 +24,10 @@ export class UpdateStaffDto {
   designation?: string;
 
   @IsOptional()
+  @IsString()
+  photo?: string;
+  
+  @IsOptional()
   @IsEnum(Gender, {
     message: 'Gender must be one of M, F, or O',
   })
