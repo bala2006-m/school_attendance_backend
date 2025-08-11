@@ -2,7 +2,7 @@ import { PrismaService } from '../common/prisma.service';
 import { RegisterStudentDto } from './dto/register-student.dto';
 import * as bcrypt from 'bcrypt';
 import { BadRequestException, Injectable } from '@nestjs/common';
-
+import { UpdateStudentDto } from './dto/update-student.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { log } from 'console';
 @Injectable()
