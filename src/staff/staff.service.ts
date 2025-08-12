@@ -70,6 +70,7 @@ async findByUsername(username: string) {
         mobile: true,
         class_ids:true,
         photo:true,
+        email:true,
       },
     });
   } catch (error) {

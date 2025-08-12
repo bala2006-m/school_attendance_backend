@@ -101,6 +101,7 @@ export class StaffController {
           mobile: staff.mobile,
           class_ids:staff.class_ids,
           photo:staff.photo,
+          email:staff.email,
         },
       };
     } else {
