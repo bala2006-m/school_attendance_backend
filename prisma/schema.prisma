@@ -172,6 +172,7 @@ model ClassTimetable {
 
   School  School?  @relation(fields: [schoolId], references: [id])
   Classes Classes? @relation(fields: [classesId], references: [id])
+  @@unique([schoolId, classesId, dayOfWeek, periodNumber], name: "schoolId_classesId_dayOfWeek_periodNumber")
 
   @@index([schoolId])
   @@index([classesId])
