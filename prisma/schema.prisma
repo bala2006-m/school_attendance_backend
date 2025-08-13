@@ -30,7 +30,7 @@ model Attendance_user {
   school_id Int
 
   school   School    @relation(fields: [school_id], references: [id])
-  staff    Staff?    @relation("UserToStaff")
+  staff    Staff?    @relation("UserToStaff1")
   students Student[]
   admin    Admin?
 
@@ -54,6 +54,7 @@ model School {
   studentAttendances StudentAttendance[]
   admins             Admin[]
   Messages           Messages[]
+Tickets            Tickets[]
 }
 
 model Classes {
@@ -101,7 +102,7 @@ model Staff {
   photo       Bytes?  @default("null")
 
   school      School            @relation(fields: [school_id], references: [id])
-  user        Attendance_user   @relation("UserToStaff", fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
+  user        Attendance_user   @relation("UserToStaff1", fields: [username], references: [username], onDelete: Cascade, onUpdate: Cascade)
   attendances StaffAttendance[]
   classes     Classes[]         @relation("class_ids")
 
@@ -188,6 +189,21 @@ model Feedback {
   school School  @relation(fields: [school_id], references: [id])
   class  Classes @relation(fields: [class_id], references: [id])
 }
+//add parthi
+model Tickets {
+  id          Int      @id @default(autoincrement())
+  username    String
+  name        String
+  email       String
+  tickets     String
+  school_id   Int
+  status      String   @default("Pending")
+  created_at  DateTime @default(now())
+  modified_at DateTime @default(now())
+
+  school School @relation(fields: [school_id], references: [id])
+}
+
 
 model Admin {
   id          Int     @id @default(autoincrement())
