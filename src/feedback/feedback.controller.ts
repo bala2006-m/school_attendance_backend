@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Get, Query } from '@nestjs/common';
-import { FeedbackService } from './feedback.service'; // adjust path accordingly
+import { FeedbackService,TicketsService } from './feedback.service'; // adjust path accordingly
 
 @Controller('feedback')
 export class FeedbackController {
@@ -30,5 +30,37 @@ export class FeedbackController {
     }
 
     return this.feedbackService.getFeedbackBySchool({school_id});
+  }
+}
+//parthi Add.
+@Controller('Tickets')
+export class TicketsController {
+  constructor(private readonly TicketsService: TicketsService) {}
+
+  @Post('post')
+  async storeTickets(@Body() body: any) {
+    const { username, name, email, tickets, schoolId } = body;
+
+    // Delegate creation to feedbackService
+    const newFeedback = await this.TicketsService.createTickets({
+      username,
+      name,
+      email,
+      tickets,
+      school_id: parseInt(schoolId),
+    });
+
+    return { status: 'success', data: newFeedback };
+  }
+
+  @Get('list')
+  async getTickets(
+    @Query('school_id') school_id?: number,
+  ) {
+    if (!school_id) {
+      throw new Error('school_id query parameter is required');
+    }
+
+    return this.TicketsService.getTicketsBySchool({school_id});
   }
 }
