@@ -6,6 +6,41 @@ import { DayOfWeek } from '@prisma/client';
 export class ClassTimetableService {
   constructor(private prisma: PrismaService) {}
 
+  // async saveTimetables(data: string) {
+  //   const lines = data
+  //     .split('\n')
+  //     .map((line) => line.trim())
+  //     .filter(Boolean);
+
+  //   const entries = lines.map((line) => {
+  //     const [schoolIdStr, classesIdStr, dayOfWeekRaw, periodNumberStr, ...subjectParts] = line.split(' ');
+
+  //     const schoolId = parseInt(schoolIdStr, 10);
+  //     const classesId = parseInt(classesIdStr, 10);
+  //     const periodNumber = parseInt(periodNumberStr, 10);
+  //     const subject = subjectParts.join(' ');
+
+  //     // Ensure dayOfWeek is a valid enum
+  //     const dayOfWeek = dayOfWeekRaw as DayOfWeek;
+
+  //     return {
+  //       schoolId,
+  //       classesId,
+  //       dayOfWeek,
+  //       periodNumber,
+  //       subject,
+  //     };
+  //   });
+
+  //   await this.prisma.classTimetable.createMany({
+  //     data: entries,
+  //     skipDuplicates: true,
+  //   });
+
+  //   return { success: true, count: entries.length };
+  // }
+
+  //parthi Add
   async saveTimetables(data: string) {
     const lines = data
       .split('\n')
@@ -14,30 +49,34 @@ export class ClassTimetableService {
 
     const entries = lines.map((line) => {
       const [schoolIdStr, classesIdStr, dayOfWeekRaw, periodNumberStr, ...subjectParts] = line.split(' ');
-
-      const schoolId = parseInt(schoolIdStr, 10);
-      const classesId = parseInt(classesIdStr, 10);
-      const periodNumber = parseInt(periodNumberStr, 10);
-      const subject = subjectParts.join(' ');
-
-      // Ensure dayOfWeek is a valid enum
-      const dayOfWeek = dayOfWeekRaw as DayOfWeek;
-
       return {
-        schoolId,
-        classesId,
-        dayOfWeek,
-        periodNumber,
-        subject,
+        schoolId: parseInt(schoolIdStr, 10),
+        classesId: parseInt(classesIdStr, 10),
+        dayOfWeek: dayOfWeekRaw as DayOfWeek,
+        periodNumber: parseInt(periodNumberStr, 10),
+        subject: subjectParts.join(' '),
       };
     });
 
-    await this.prisma.classTimetable.createMany({
-      data: entries,
-      skipDuplicates: true,
-    });
+    const results: any[] = [];
+    for (const entry of entries) {
+      const record = await this.prisma.classTimetable.upsert({
+        where: {
+          schoolId_classesId_dayOfWeek_periodNumber: {
+            schoolId: entry.schoolId,
+            classesId: entry.classesId,
+            dayOfWeek: entry.dayOfWeek,
+            periodNumber: entry.periodNumber,
+          },
+        },
+        update: { subject: entry.subject },
+        create: entry,
+        select: { id: true, schoolId: true, classesId: true, dayOfWeek: true, periodNumber: true, subject: true },
+      });
+      results.push(record);
+    }
 
-    return { success: true, count: entries.length };
+    return { success: true, count: results.length, data: results };
   }
 
   async getTimetable(schoolId: number, classesId: number) {
