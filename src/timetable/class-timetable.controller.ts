@@ -5,13 +5,13 @@ import { SaveTimetableDto } from './dto/timetable.dto';
 @Controller('timetable')
 export class ClassTimetableController {
   constructor(private readonly timetableService: ClassTimetableService) {}
-
-
-
- @Post()
-   async save(@Body() dto: SaveTimetableDto) {
-     return this.timetableService.saveTimetables(dto.data);
-   }
+  
+ @Post('create')
+  async save(@Body() body: { data: string }) {
+    console.log('its work');
+    
+    return this.timetableService.saveTimetables(body.data);
+  }
   @Get()
   async getTimetable(
     @Query('schoolId') schoolIdStr: string,
@@ -27,8 +27,6 @@ export class ClassTimetableController {
     const result = await this.timetableService.getTimetable(schoolId, classId);
     return { status: 'success', timetable: result };
   }
-
-
 
 //    @Put(':id')
 //     async update(@Param('id') id: number, @Body() data: Partial<CreateTimetableDto>) {
