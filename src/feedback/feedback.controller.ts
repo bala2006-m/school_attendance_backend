@@ -42,7 +42,7 @@ export class TicketsController {
     const { username, name, email, tickets, schoolId } = body;
 
     // Delegate creation to feedbackService
-    const newFeedback = await this.TicketsService.createTickets({
+    const newTickets = await this.TicketsService.createTickets({
       username,
       name,
       email,
@@ -50,7 +50,7 @@ export class TicketsController {
       school_id: parseInt(schoolId),
     });
 
-    return { status: 'success', data: newFeedback };
+    return { status: 'success', data: newTickets };
   }
 
   @Get('list')
