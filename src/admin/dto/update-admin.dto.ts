@@ -16,4 +16,12 @@ export class UpdateAdminDto {
   @IsOptional()
   @IsString()
   photoBase64?: string;
+
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  gender?: string;
 }

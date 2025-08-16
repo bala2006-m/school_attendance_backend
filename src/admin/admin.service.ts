@@ -59,6 +59,8 @@ export class AdminService {
       name: data.name,
       designation: data.designation,
       mobile: data.mobile,
+      gender:data.gender,
+      email:data.email
     };
 
     if (data.photoBase64) {

@@ -94,7 +94,7 @@ model Staff {
   username    String  @unique
   designation String
   name        String?
-  email       String  @unique
+  email       String   @default("null")
   gender      Gender?
   mobile      String  @unique
   school_id   Int
