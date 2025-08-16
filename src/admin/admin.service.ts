@@ -17,6 +17,7 @@ export class AdminService {
           email:true,
           photo: true,
           school_id: true,
+          gender:true,
         },
       });
 
@@ -36,6 +37,7 @@ export class AdminService {
           mobile:true,
           photo: true,
           school_id: true,
+          gender:true,
         },
          orderBy: { name: 'asc' },
       });
