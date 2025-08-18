@@ -2,11 +2,11 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { SchoolsService } from './schools.service';
 
-@Controller('fetch_school_data')
+@Controller('school')
 export class SchoolsController {
   constructor(private readonly schoolsService: SchoolsService) {}
 
-  @Get()
+  @Get('fetch_school_data')
   async getSchoolById(@Query('id') id: string) {
     // Validate that ID is provided and is a number
     if (!id || isNaN(Number(id))) {
@@ -41,4 +41,31 @@ export class SchoolsController {
       return { status: 'error', message: 'Internal server error' };
     }
   }
+
+  @Get('fetch_all_schools')
+  async getAllSchools() {
+    try {
+      const schools = await this.schoolsService.findAllSchools();
+
+      if (!schools || schools.length === 0) {
+        return { status: 'error', message: 'No schools found' };
+      }
+
+      return {
+        status: 'success',
+        schools: schools.map((school) => ({
+          id: school.id,
+          name: school.name,
+          address: school.address,
+          photo: school.photo
+            ? Buffer.from(school.photo).toString('base64')
+            : null,
+        })),
+      };
+    } catch (error) {
+      console.error('Error fetching schools:', error);
+      return { status: 'error', message: 'Internal server error' };
+    }
+  }
 }
+

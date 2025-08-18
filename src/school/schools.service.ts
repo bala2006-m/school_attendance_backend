@@ -17,4 +17,15 @@ export class SchoolsService {
       },
     });
   }
+  async findAllSchools() {
+  try {
+    return await this.prisma.school.findMany({
+      select: { id: true, name: true, address: true, photo: true },
+      orderBy: { name: 'asc' },
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch schools: ${error.message}`);
+  }
+}
+
 }
