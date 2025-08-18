@@ -27,6 +27,7 @@ export class LeaveRequestController {
       from_date: string;
       to_date: string;
       reason?: string;
+      email:string,
     },
   ) {
     // Parse dates and numeric fields
@@ -45,6 +46,7 @@ export class LeaveRequestController {
       from_date: fromDate,
       to_date: toDate,
       reason: body.reason,
+      email:body.email
     });
   }
 

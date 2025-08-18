@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma.service';
+import * as nodemailer from 'nodemailer';
 
 export type RoleType = 'admin' | 'staff' | 'student';
 
@@ -16,10 +17,48 @@ export class LeaveRequestService {
     from_date: Date;
     to_date: Date;
     reason?: string;
+    email:string;
   }) {
     if (data.from_date > data.to_date) {
       throw new BadRequestException('from_date cannot be later than to_date');
     }
+    const transporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: 'Noreply.ramchintech@gmail.com',
+            pass: 'zkvb rmyu yqtm ipgv',
+          },
+        });
+    
+        // // 3. Send email to admin
+        // await transporter.sendMail({
+        //   from: 'Noreply.ramchintech@gmail.com',
+        //   to: data.email,
+        //   subject: `New Leave Request Submitted `,
+        //   html: `
+        //     <p><strong>Username:</strong> ${data.username}</p>
+        //     <p><strong>From:</strong> ${data.from_date}</p>
+        //     <p><strong>To:</strong> ${data.to_date}</p>
+        //     <p><strong>Reason:</strong> ${data.reason}</p>
+        //   `,
+        // });
+    
+        // 4. Send confirmation email to user
+        await transporter.sendMail({
+          from: 'Noreply.ramchintech@gmail.com',
+          to: data.email,
+          subject: 'Leave Request Submission Successful',
+          html: `
+            <h3>Leave Request Submitted Successfully</h3>
+            <p>Dear ${data.username},</p>
+            <p>Your Leave Request has been submitted successfully.For ${data.reason} from ${data.from_date} to ${data.to_date}</p>
+            <p><strong>Ticket Details:</strong></p>
+            <p>Thank you!</p>
+          `,
+        });
+    
     return this.prisma.leaveRequest.create({
       data: {
         username: data.username,
