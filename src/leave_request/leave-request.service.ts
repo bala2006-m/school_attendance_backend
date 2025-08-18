@@ -54,7 +54,12 @@ export class LeaveRequestService {
             <h3>Leave Request Submitted Successfully</h3>
             <p>Dear ${data.username},</p>
             <p>Your Leave Request has been submitted successfully.</p>
-            <p>For ${data.reason} from ${data.from_date.getDay}-${data.from_date.getMonth}-${data.from_date.getFullYear} to ${data.to_date.getDate}-${data.to_date.getMonth}-${data.to_date.getFullYear}</p>
+<p>
+  For ${data.reason} from 
+  ${data.from_date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} 
+  to 
+  ${data.to_date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+</p>
             <p>Thank you!</p>
           `,
         });
