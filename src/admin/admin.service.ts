@@ -58,7 +58,7 @@ export class AdminService {
 
   async updateAdmin(username: string, school_id: number, data: UpdateAdminDto) {
     const existingAdmin = await this.prisma.admin.findUnique({
-      where: { username_school_id: { username, school_id } },
+      where: { username_school_id: { username, school_id:Number(school_id) } },
     });
 
     if (!existingAdmin) {
@@ -80,7 +80,7 @@ export class AdminService {
     }
 
     await this.prisma.admin.update({
-      where: { username_school_id: { username, school_id } },
+      where: { username_school_id: { username, school_id:Number(school_id) } },
       data: updateData,
     });
 
