@@ -6,12 +6,13 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 export class AdminService {
   constructor(private prisma: PrismaService) {}
 
-  async getAdmin(username?: string) {
+  async getAdmin(username?: string,school_id?:number) {
     if (username) {
-      const admin = await this.prisma.admin.findUnique({
-        where: { username },
+      const admin = await this.prisma.admin.findFirst({
+        where: {username,school_id },
         select: {
           name: true,
+          username:true,
           designation: true,
           mobile:true,
           email:true,
@@ -48,8 +49,8 @@ export class AdminService {
       }));
     }
   }
-  async updateAdmin(username: string, data: UpdateAdminDto) {
-    const existingAdmin = await this.prisma.admin.findUnique({
+  async updateAdmin(username: string,school_id:number, data: UpdateAdminDto) {
+    const existingAdmin = await this.prisma.admin.findFirst({
       where: { username },
     });
 
@@ -69,8 +70,8 @@ export class AdminService {
       updateData.photo = Buffer.from(data.photoBase64, 'base64');
     }
 
-    await this.prisma.admin.update({
-      where: { username },
+    await this.prisma.admin.updateMany({
+      where: { username ,school_id},
       data: updateData,
     });
 

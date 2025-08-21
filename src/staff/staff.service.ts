@@ -11,7 +11,7 @@ import { UpdateStaffDto } from './dto/update-staff.dto';
 @Injectable()
 export class StaffService {
   constructor(private prisma: PrismaService) {}
-  async updateProfile(username: string, data: UpdateStaffDto) {
+  async updateProfile(username: string, data: UpdateStaffDto,school_id:number) {
     
   // Separate the photo from other fields
   const { photo, ...restDto } = data;
@@ -27,18 +27,18 @@ export class StaffService {
       return { status: 'error', message: 'Invalid photo format' };
     }
   }
-    return this.prisma.staff.update({
-      where: { username },
+    return this.prisma.staff.updateMany({
+      where: { username,school_id },
       data:updateData,
     });
   }
-  async getProfileByUsername(username: string) {
+  async getProfileByUsername(username: string,school_id:number) {
     if (!username) {
       throw new BadRequestException('Username is required');
     }
 
-    return this.prisma.staff.findUnique({
-      where: { username },
+    return this.prisma.staff.findFirst({
+      where: { username,school_id:Number(school_id) },
       select: {
         id: true,
         username: true,
@@ -58,10 +58,10 @@ export class StaffService {
 
 
 
-async findByUsername(username: string) {
+async findByUsername(username: string,school_id:number) {
   try {
-    return await this.prisma.staff.findUnique({
-      where: { username },
+    return await this.prisma.staff.findFirst({
+      where: { username,school_id },
       select: {
         school_id: true,
         name: true,
@@ -78,13 +78,13 @@ async findByUsername(username: string) {
     throw error;
   }
 }
-async findByMobile(mobile: string) {
+async findByMobile(mobile: string,school_id:number) {
   try {
     var mobile=`+91${mobile}`;
   
     
     return await this.prisma.staff.findUnique({
-      where: { mobile },
+      where: { mobile,school_id },
       select: {
         username:true,
       },
@@ -96,8 +96,8 @@ async findByMobile(mobile: string) {
 }
 
   async register(dto: RegisterStaffDto) {
-    const exists = await this.prisma.staff.findUnique({
-      where: { username: dto.username },
+    const exists = await this.prisma.staff.findFirst({
+      where: { username: dto.username,school_id:dto.school_id },
     });
 
     if (exists) {
@@ -144,8 +144,8 @@ async findByMobile(mobile: string) {
       staff:staffList,
     };
   }
-  async updateStaff(username: string, dto: UpdateStaffDto) {
-    const staff = await this.prisma.staff.findUnique({ where: { username } });
+  async updateStaff(username: string, dto: UpdateStaffDto,school_id:number) {
+    const staff = await this.prisma.staff.findFirst({ where: { username,school_id } });
 
     if (!staff) {
       return { status: 'error', message: 'Staff not found' };
@@ -164,14 +164,14 @@ async findByMobile(mobile: string) {
         return { status: 'error', message: 'Invalid photo format' };
       }
     }}
-  async deleteStaff(username: string) {
-    const exists = await this.prisma.staff.findUnique({ where: { username } });
+  async deleteStaff(username: string,school_id:number) {
+    const exists = await this.prisma.staff.findFirst({ where: { username,school_id } });
 
     if (!exists) {
       return { status: 'error', message: 'Staff not found' };
     }
 
-    await this.prisma.staff.delete({ where: { username } });
+    await this.prisma.staff.deleteMany({ where: { username,school_id } });
 
     return { status: 'success', message: `Staff '${username}' deleted.` };
   }

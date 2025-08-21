@@ -8,32 +8,32 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
  @Get('school-class')
-  async getSchoolAndClass(@Query('username') username: string) {
-    return this.studentsService.getSchoolAndClassByUsername(username);
+  async getSchoolAndClass(@Query('username') username: string,@Query('school_id') school_id: number) {
+    return this.studentsService.getSchoolAndClassByUsername(username,school_id);
   }
   @Put('update')
 async updateStudent(
-  @Query('username') username: string,
+  @Query('username') username: string,@Query('school_id') school_id: number,
   @Body() dto: UpdateStudentDto,
 ) {
   if (!username) {
     return { status: 'error', message: 'Missing username' };
   }
 
-  return this.studentsService.updateStudent(username, dto);
+  return this.studentsService.updateStudent(username, dto,school_id);
 }
 @Get('fetch_all_student_data')
   async fetchAllStudents(@Query('school_id') schoolId?: string) {
     return this.studentsService.getAllStudents(schoolId);
   }
   @Get('by-username')
-  async getStudentByUsername(@Query('username') username: string) {
+  async getStudentByUsername(@Query('username') username: string,@Query('school_id') school_id: number) {
     try {
       if (!username) {
         return { status: 'error', message: 'Missing or empty username' };
       }
 
-      return await this.studentsService.findByUsername(username);
+      return await this.studentsService.findByUsername(username,school_id);
     } catch (error) {
       console.error('Error in getStudentByUsername:', error); // <-- this is what we need
       return { status: 'error', message: 'Internal server error' };
@@ -46,16 +46,16 @@ async updateStudent(
       return this.studentsService.registerStudent(dto);
     }
  @Delete('delete')
-  async deleteStudent(@Query('username') username: string) {
+  async deleteStudent(@Query('username') username: string,@Query('school_id') school_id: number) {
     if (!username) {
       return { status: 'error', message: 'Missing username' };
     }
 
-    return this.studentsService.deleteStudent(username);
+    return this.studentsService.deleteStudent(username,school_id);
   }
  @Post('change-password')
-   async changePassword(@Body() dto: ChangePasswordDto) {
-     return this.studentsService.changeStudentPassword(dto);
+   async changePassword(@Body() dto: ChangePasswordDto,@Query('school_id') school_id: number) {
+     return this.studentsService.changeStudentPassword(dto,school_id);
    }
 @Get('all-by-class')
   async getAllByClass(@Query('class_id') classId: string) {

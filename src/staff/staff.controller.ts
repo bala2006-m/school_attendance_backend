@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Param,
   Post,
   Get,
   Put,
@@ -12,6 +11,7 @@ import { StaffService } from './staff.service';
 import { RegisterStaffDto } from './dto/register-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { ChangeStaffPasswordDto } from './dto/change-password.dto';
+import { Param } from '@nestjs/common';
 import {
   Injectable,
   NotFoundException,
@@ -21,21 +21,22 @@ import {
 @Controller('staff')
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
-  @Put('update/:username')
+  @Put('update/:username/:school_id')
   async updateProfile(
     @Param('username') username: string,
+    @Param('school_id') school_id:number,
     @Body() updateData: UpdateStaffDto,
   ) {
-    const staff = await this.staffService.findByUsername(username);
+    const staff = await this.staffService.findByUsername(username,school_id);
     if (!staff) {
       throw new NotFoundException('Staff not found');
     }
-    const updated = await this.staffService.updateProfile(username, updateData);
+    const updated = await this.staffService.updateProfile(username, updateData,school_id);
     return { status: 'success', data: updated };
   }
 
   @Get('fetch-staffs')
-  async getProfileByUsername1(@Query('username') username: string) {
+  async getProfileByUsername1(@Query('username') username: string, @Query('school_id') school_id:number,) {
     if (!username) {
       return {
         status: 'error',
@@ -44,7 +45,7 @@ export class StaffController {
     }
 
     try {
-      const staff = await this.staffService.getProfileByUsername(username);
+      const staff = await this.staffService.getProfileByUsername(username,school_id);
 
       if (staff) {
         return {
@@ -79,7 +80,7 @@ export class StaffController {
   }
 
   @Get('fetch-by-username')
-  async getByUsername(@Query('username') username: string) {
+  async getByUsername(@Query('username') username: string, @Query('school_id') school_id:number,) {
     if (!username) {
       return {
         status: 'error',
@@ -88,7 +89,7 @@ export class StaffController {
     }
 
     try {
-      const staff = await this.staffService.findByUsername(username);
+      const staff = await this.staffService.findByUsername(username,school_id);
 
     if (staff) {
       return {
@@ -121,7 +122,7 @@ export class StaffController {
 }
 
   @Get('fetch-by-mobile')
-  async getByMobile(@Query('mobile') mobile: string) {
+  async getByMobile(@Query('mobile') mobile: string,@Query('school_id') school_id: number) {
     if (!mobile) {
       return {
         status: 'error',
@@ -130,7 +131,7 @@ export class StaffController {
     }
 
     try {
-      const staff = await this.staffService.findByMobile(mobile);
+      const staff = await this.staffService.findByMobile(mobile,school_id);
 
       if (staff) {
         return {
@@ -170,19 +171,20 @@ export class StaffController {
   @Put('update')
   async updateStaff(
     @Query('username') username: string,
+     @Query('school_id') school_id:number,
     @Body() dto: UpdateStaffDto,
   ) {
     if (!username) {
       return { status: 'error', message: 'Missing username' };
     }
-    return this.staffService.updateStaff(username, dto);
+    return this.staffService.updateStaff(username, dto,school_id);
   }
    @Delete('delete')
-    async deleteStaff(@Query('username') username: string) {
+    async deleteStaff(@Query('username') username: string, @Query('school_id') school_id:number,) {
       if (!username) {
         return { status: 'error', message: 'Missing username' };
       }
-      return this.staffService.deleteStaff(username);
+      return this.staffService.deleteStaff(username,school_id);
     }
 // @Put('change-password')
 //   async changePassword(@Body() dto: ChangeStaffPasswordDto) {

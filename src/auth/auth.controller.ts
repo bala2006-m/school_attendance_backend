@@ -247,8 +247,8 @@ export class AuthController {
 
   // ✅ Update Password using Username
   @Post('update_password')
-  async updatePassword(@Body() body: { username: string; newPassword: string }) {
-    const { username, newPassword } = body;
+  async updatePassword(@Body() body: { username: string; newPassword: string,school_id:number }) {
+    const { username, newPassword ,school_id} = body;
 
     // Input validation
     if (!username) {
@@ -261,6 +261,6 @@ export class AuthController {
       });
     }
 
-    return this.authService.updatePassword(username, newPassword);
+    return this.authService.updatePassword(username, newPassword,school_id);
   }
 }

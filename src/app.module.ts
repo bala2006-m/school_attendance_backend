@@ -16,6 +16,8 @@ import { AttendanceUserModule } from './attendance-user/attendance-user.module'
 import { MessagesModule } from './messages/messages.module';
 import { LeaveRequestModule } from './leave_request/leave-request.module';
 import { NewsModule } from './news/news.module';
+import { BlockedSchoolModule} from'./blocked-school/blocked-school.module';
+import { UserModule } from './edit-password/user.module'
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { NewsModule } from './news/news.module';
      MessagesModule,
      LeaveRequestModule,
      NewsModule,
+     BlockedSchoolModule,
+     UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

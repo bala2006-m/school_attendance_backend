@@ -10,6 +10,7 @@ import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { CreateStaffAttendanceDto } from './dto/create-staff-attendance.dto';
 import { FetchStudentAttendanceDto } from './dto/fetch-student-attendance.dto';
+import { IsNumber } from 'class-validator';
 @Controller('attendance')
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
@@ -162,6 +163,7 @@ export class AttendanceController {
     @Query('username') username: string,
     @Query('month') month: string,
     @Query('year') year: string,
+    @Query('school_id') school_id: number
   ) {
     if (!username) {
       return { status: 'error', message: 'Missing username' };
@@ -173,14 +175,14 @@ export class AttendanceController {
       return { status: 'error', message: 'Missing year' };
     }
 
-    return this.attendanceService.getMonthlySummary(username, +month, +year);
+    return this.attendanceService.getMonthlySummary(username, +month, +year,school_id);
   }
 
   @Get('student/betweensummary')
   async getStudentSummary(
     @Query('username') username: string,
     @Query('fromDate') fromDate: string,
-    @Query('toDate') toDate: string,
+    @Query('toDate') toDate: string,@Query('school_id') school_id: number
   ) {
     
     // Basic validation can be enhanced further
@@ -197,6 +199,7 @@ export class AttendanceController {
       username,
       fromDate,
       toDate,
+      school_id
     );
   }
 
@@ -204,12 +207,13 @@ export class AttendanceController {
   async getDailySummary(
     @Query('username') username: string,
     @Query('date') date: string,
+    @Query('school_id') school_id: number,
   ) {
     if (!username || !date) {
       return { status: 'error', message: 'Missing username or date' };
     }
 
-    return this.attendanceService.getDailySummary(username, date);
+    return this.attendanceService.getDailySummary(username, date,school_id);
   }
 
   @Post('staff')
@@ -219,13 +223,14 @@ export class AttendanceController {
   @Get('staff/daily-summary')
   async getStaffDaily(
     @Query('username') username: string,
+    @Query('school_id') school_id:number,
     @Query('date') date: string,
   ) {
     if (!username || !date) {
       return { status: 'error', message: 'Missing username or date' };
     }
 
-    return this.attendanceService.getStaffDailySummary(username, date);
+    return this.attendanceService.getStaffDailySummary(username, date,school_id);
   }
   @Get('staff/monthly')
   async getStaffMonthly(

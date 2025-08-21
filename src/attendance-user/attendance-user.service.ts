@@ -41,10 +41,11 @@ async deleteUser(
 
   return deleted;
 }
-  async getUsersByRole(role: string) {
+  async getUsersByRole(role: string,school_id:number) {
     return this.prisma.attendance_user.findMany({
       where: {
-        role: role.toLowerCase(), // optional: normalize input
+        role: role.toLowerCase(), 
+        school_id
       },
       select: {
         id: true,

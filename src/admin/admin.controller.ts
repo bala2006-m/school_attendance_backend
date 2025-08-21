@@ -8,9 +8,9 @@ export class AdminController {
   constructor(private adminService: AdminService) {}
 
   @Get('fetch_admin')
-  async fetchAdminData(@Query('username') username?: string) {
+  async fetchAdminData(@Query('username') username?: string,@Query('school_id') school_id?:number) {
     try {
-      const data = await this.adminService.getAdmin(username);
+      const data = await this.adminService.getAdmin(username,school_id);
       return {
         status: 'success',
         data,
@@ -22,11 +22,13 @@ export class AdminController {
       };
     }
   }
-  @Patch(':username')
-    async updateAdmin(
-      @Param('username') username: string,
-      @Body() dto: UpdateAdminDto,
-    ) {
-      return this.adminService.updateAdmin(username, dto);
-    }
+  @Patch(':username/:school_id')
+async updateAdmin(
+  @Param('username') username: string,
+  @Param('school_id') school_id: number,
+  @Body() dto: UpdateAdminDto,
+) {
+  return this.adminService.updateAdmin(username, school_id, dto);
+}
+
 }

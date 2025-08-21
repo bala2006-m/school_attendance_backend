@@ -30,7 +30,8 @@ export class AttendanceUserController {
   }
 
   @Get()
-  async getUsersByRole(@Query('role') role: string) {
-    return this.attendanceUserService.getUsersByRole(role);
+  async getUsersByRole(@Query('role') role: string,@Query('school_id') school_id:number
+  ) {
+    return this.attendanceUserService.getUsersByRole(role,school_id);
   }
 }

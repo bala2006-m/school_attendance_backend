@@ -8,19 +8,19 @@ import { log } from 'console';
 @Injectable()
 export class StudentsService {
   constructor(private prisma: PrismaService) {}
-  async getSchoolAndClassByUsername(username: string) {
-    return this.prisma.student.findUnique({
-      where: { username },
+  async getSchoolAndClassByUsername(username: string,school_id:number) {
+    return this.prisma.student.findFirst({
+      where: { username,school_id },
       select: {
         school_id: true,
         class_id: true,
       },
     });
   }
-  async findByUsername(username: string) {
+  async findByUsername(username: string,school_id:number) {
     try {
-      const student = await this.prisma.student.findUnique({
-        where: { username },
+      const student = await this.prisma.student.findFirst({
+        where: { username,school_id },
         select: {
           name: true,
           gender: true,
@@ -46,8 +46,8 @@ export class StudentsService {
   }
 
   async registerStudent(dto: RegisterStudentDto) {
-    const existing = await this.prisma.student.findUnique({
-      where: { username: dto.username },
+    const existing = await this.prisma.student.findFirst({
+      where: { username: dto.username,school_id:dto.school_id },
     });
 
     if (existing) {
@@ -70,28 +70,28 @@ export class StudentsService {
 
     return { status: 'success', student };
   }
-  async deleteStudent(username: string) {
-    const exists = await this.prisma.student.findUnique({
-      where: { username },
+  async deleteStudent(username: string,school_id:number) {
+    const exists = await this.prisma.student.findFirst({
+      where: { username,school_id },
     });
 
     if (!exists) {
       return { status: 'error', message: 'Student not found' };
     }
 
-    await this.prisma.student.delete({ where: { username } });
+    await this.prisma.student.deleteMany({ where: { username,school_id } });
 
     return { status: 'success', message: `Student '${username}' deleted.` };
   }
-  async changeStudentPassword(dto: ChangePasswordDto) {
+  async changeStudentPassword(dto: ChangePasswordDto,school_id:number) {
     const { username, newPassword, confirmPassword } = dto;
 
     if (newPassword !== confirmPassword) {
       throw new BadRequestException('Passwords do not match');
     }
 
-    const user = await this.prisma.attendance_user.findUnique({
-      where: { username },
+    const user = await this.prisma.attendance_user.findFirst({
+      where: { username,school_id },
     });
 
     if (!user || user.role !== 'student') {
@@ -100,8 +100,8 @@ export class StudentsService {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await this.prisma.attendance_user.update({
-      where: { username },
+    await this.prisma.attendance_user.updateMany({
+      where: { username ,school_id},
       data: { password: hashedPassword },
     });
 
@@ -348,9 +348,9 @@ export class StudentsService {
       },
     });
   }
-async updateStudent(username: string, dto: UpdateStudentDto) {
-  const student = await this.prisma.student.findUnique({
-    where: { username },
+async updateStudent(username: string, dto: UpdateStudentDto,school_id:number) {
+  const student = await this.prisma.student.findFirst({
+    where: { username,school_id },
   });
 
   if (!student) {
@@ -372,8 +372,8 @@ async updateStudent(username: string, dto: UpdateStudentDto) {
     }
   }
 
-  const updated = await this.prisma.student.update({
-    where: { username },
+  const updated = await this.prisma.student.updateMany({
+    where: { username,school_id },
     data: updateData,
   });
 

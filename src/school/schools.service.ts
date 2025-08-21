@@ -1,6 +1,7 @@
 // src/school/schools.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable ,InternalServerErrorException} from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
+import { CreateSchoolDto } from './dto/create-school.dto';
 
 @Injectable()
 export class SchoolsService {
@@ -27,5 +28,23 @@ export class SchoolsService {
     throw new Error(`Failed to fetch schools: ${error.message}`);
   }
 }
+async create(createSchoolDto: CreateSchoolDto, file: Express.Multer.File) {
+  const existingSchool = await this.prisma.school.findUnique({
+    where: { name: createSchoolDto.name },
+  });
+
+  if (existingSchool) {
+    throw new InternalServerErrorException(`School is already registered`);
+  }
+
+  return this.prisma.school.create({
+    data: {
+      name: createSchoolDto.name,
+      address: createSchoolDto.address,
+      photo: new Uint8Array(file.buffer),
+    },
+  });
+}
+
 
 }

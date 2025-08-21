@@ -19,8 +19,8 @@ export class AuthService {
     const { username, password, role, school_id } = data;
 
     // Check if username exists
-    const existingUser = await this.prisma.attendance_user.findUnique({
-      where: { username },
+    const existingUser = await this.prisma.attendance_user.findFirst({
+      where: { username,school_id:Number(school_id) },
     });
 
     if (existingUser) {
@@ -71,8 +71,8 @@ export class AuthService {
     // Table-specific logic
     const tableMap = {
       admin: async () => {
-        const exists = await this.prisma.admin.findUnique({
-          where: { username },
+        const exists = await this.prisma.admin.findFirst({
+          where: { username,school_id:schoolIdInt },
         });
         if (exists)
           throw new ConflictException('Username already exists in admin');
@@ -86,8 +86,8 @@ export class AuthService {
         });
       },
       staff: async () => {
-        const exists = await this.prisma.staff.findUnique({
-          where: { username },
+        const exists = await this.prisma.staff.findFirst({
+          where: { username,school_id:schoolIdInt },
         });
         if (exists)
           throw new ConflictException('Username already exists in staff');
@@ -98,12 +98,13 @@ export class AuthService {
             school_id: schoolIdInt,
             mobile,
             email: '',
+            class_ids:[]
           },
         });
       },
       students: async () => {
-        const exists = await this.prisma.student.findUnique({
-          where: { username },
+        const exists = await this.prisma.student.findFirst({
+          where: { username ,school_id:schoolIdInt},
         });
         if (exists)
           throw new ConflictException('Username already exists in students');
@@ -139,8 +140,8 @@ export class AuthService {
     const { username, name, gender, email, mobile, class_id, school_id } = dto;
 
     // Check if username exists
-    const exists = await this.prisma.student.findUnique({
-      where: { username },
+    const exists = await this.prisma.student.findFirst({
+      where: { username ,school_id:Number(school_id)},
     });
 
     if (exists) {
@@ -212,13 +213,13 @@ export class AuthService {
         if (!school)
           throw new BadRequestException(`Invalid school_id: ${schoolIdInt}`);
 
-        const existingAdmin = await this.prisma.admin.findUnique({
-          where: { username },
+        const existingAdmin = await this.prisma.admin.findFirst({
+          where: { username,school_id },
         });
         if (existingAdmin) return { alreadyExisting: { username } };
 
-        const attendanceUser = await this.prisma.attendance_user.findUnique({
-          where: { username },
+        const attendanceUser = await this.prisma.attendance_user.findFirst({
+          where: { username ,school_id},
         });
         const hashedPassword = await bcrypt.hash(password, 10);
         if (!attendanceUser) {
@@ -252,13 +253,13 @@ export class AuthService {
         if (!school)
           throw new BadRequestException(`Invalid school_id: ${schoolIdInt}`);
 
-        const existingStaff = await this.prisma.staff.findUnique({
-          where: { username },
+        const existingStaff = await this.prisma.staff.findFirst({
+          where: { username,school_id:schoolIdInt},
         });
         if (existingStaff) return { alreadyExisting: { username } };
 
-        const attendanceUser = await this.prisma.attendance_user.findUnique({
-          where: { username },
+        const attendanceUser = await this.prisma.attendance_user.findFirst({
+          where: { username ,school_id:schoolIdInt},
         });
         const hashedPassword = await bcrypt.hash(password, 10);
         if (!attendanceUser) {
@@ -281,6 +282,7 @@ export class AuthService {
             school_id: schoolIdInt,
             mobile,
             email,
+            class_ids:[]
           },
         });
       },
@@ -292,13 +294,13 @@ export class AuthService {
         if (!school)
           throw new BadRequestException(`Invalid school_id: ${schoolIdInt}`);
 
-        const existingStudent = await this.prisma.student.findUnique({
-          where: { username },
+        const existingStudent = await this.prisma.student.findFirst({
+          where: { username,school_id:schoolIdInt },
         });
         if (existingStudent) return { alreadyExisting: { username } };
 
-        const attendanceUser = await this.prisma.attendance_user.findUnique({
-          where: { username },
+        const attendanceUser = await this.prisma.attendance_user.findFirst({
+          where: { username,school_id:schoolIdInt  },
         });
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -362,9 +364,9 @@ export class AuthService {
   }
 
    // ✅ Update Password Logic
-  async updatePassword(username: string, newPassword: string) {
+  async updatePassword(username: string, newPassword: string,school_id:number) {
     // Check if user exists
-    const user = await this.prisma.attendance_user.findUnique({ where: { username } });
+    const user = await this.prisma.attendance_user.findFirst({ where: { username ,school_id } });
     if (!user) {
       throw new BadRequestException({ status: 'error', message: 'User not found' });
     }
@@ -373,8 +375,8 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update password in DB
-    await this.prisma.attendance_user.update({
-      where: { username },
+    await this.prisma.attendance_user.updateMany({
+      where: { username ,school_id},
       data: { password: hashedPassword },
     });
 

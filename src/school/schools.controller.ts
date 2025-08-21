@@ -1,7 +1,14 @@
 // src/school/schools.controller.ts
-import { Controller, Get, Query } from '@nestjs/common';
-import { SchoolsService } from './schools.service';
-
+import {
+  Controller,
+  Post,
+  Body,
+  UseInterceptors,
+  UploadedFile,
+  Get,Query
+} from '@nestjs/common';import { SchoolsService } from './schools.service';
+import { CreateSchoolDto } from './dto/create-school.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('school')
 export class SchoolsController {
   constructor(private readonly schoolsService: SchoolsService) {}
@@ -66,6 +73,14 @@ export class SchoolsController {
       console.error('Error fetching schools:', error);
       return { status: 'error', message: 'Internal server error' };
     }
+  }
+   @Post('create')
+  @UseInterceptors(FileInterceptor('photo')) // Expect multipart/form-data
+  create(
+    @Body() createSchoolDto: CreateSchoolDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.schoolsService.create(createSchoolDto, file);
   }
 }
 

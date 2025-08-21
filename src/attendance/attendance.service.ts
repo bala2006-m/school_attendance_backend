@@ -78,9 +78,11 @@ export class AttendanceService {
 
     const existing = await this.prisma.studentAttendance.findUnique({
       where: {
-        username_date: {
+        username_school_date: {
           username,
           date: attendanceDate,
+          school_id:Number(school_id)
+      
         },
       },
     });
@@ -91,9 +93,10 @@ export class AttendanceService {
     if (existing) {
       await this.prisma.studentAttendance.update({
         where: {
-          username_date: {
+          username_school_date: {
             username,
             date: attendanceDate,
+            school_id:Number(school_id)
           },
         },
         data: {
@@ -183,7 +186,7 @@ export class AttendanceService {
       attendance,
     };
   }
-  async getMonthlySummary(username: string, month: number, year: number) {
+  async getMonthlySummary(username: string, month: number, year: number,school_id: number) {
     const monthNum = Number(month);
     const yearNum = Number(year);
 
@@ -214,6 +217,7 @@ export class AttendanceService {
           gte: fromDate,
           lte: toDate,
         },
+        school_id
       },
       select: {
         date: true,
@@ -257,12 +261,13 @@ export class AttendanceService {
     };
   }
 
-  async getDailySummary(username: string, date: string) {
+  async getDailySummary(username: string, date: string,school_id:number) {
     const record = await this.prisma.studentAttendance.findUnique({
       where: {
-        username_date: {
+        username_school_date: {
           username,
           date: new Date(date),
+          school_id
         },
       },
       select: {
@@ -285,9 +290,10 @@ export class AttendanceService {
 
     const existing = await this.prisma.staffAttendance.findUnique({
       where: {
-        username_date: {
+        username_school_date_staff: {
           username,
           date: attendanceDate,
+          school_id:Number(school_id)
         },
       },
     });
@@ -298,9 +304,10 @@ export class AttendanceService {
     if (existing) {
       await this.prisma.staffAttendance.update({
         where: {
-          username_date: {
+          username_school_date_staff: {
             username,
             date: attendanceDate,
+            school_id:Number(school_id)
           },
         },
         data: {
@@ -323,12 +330,13 @@ export class AttendanceService {
     return { status: 'success', message: 'Staff attendance recorded' };
   }
 
-  async getStaffDailySummary(username: string, date: string) {
+  async getStaffDailySummary(username: string, date: string,school_id:number) {
     const record = await this.prisma.staffAttendance.findUnique({
       where: {
-        username_date: {
+        username_school_date_staff: {
           username,
           date: new Date(date),
+          school_id
         },
       },
       select: {
@@ -348,6 +356,7 @@ async getStudentAttendanceBetweenDateRange(
   username: string,
   fromDateInput: string,
   toDateInput: string,
+  school_id: number
 ) {
   const fromDate = new Date(fromDateInput);
   const toDate = new Date(toDateInput);
@@ -371,6 +380,7 @@ async getStudentAttendanceBetweenDateRange(
         gte: fromDate,
         lte: toDate,
       },
+      school_id
     },
     select: {
       date: true,
