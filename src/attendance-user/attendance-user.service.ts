@@ -45,7 +45,7 @@ async deleteUser(
     return this.prisma.attendance_user.findMany({
       where: {
         role: role.toLowerCase(), 
-        school_id
+        school_id:Number(school_id)
       },
       select: {
         id: true,
