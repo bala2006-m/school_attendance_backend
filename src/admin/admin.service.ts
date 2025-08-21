@@ -10,7 +10,7 @@ export class AdminService {
     if (username && school_id) {
       const admin = await this.prisma.admin.findUnique({
         where: {
-          username_school_id: { username, school_id },
+          username_school_id: { username, school_id:Number(school_id) },
         },
         select: {
           name: true,
