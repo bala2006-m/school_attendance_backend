@@ -99,40 +99,6 @@ model Holidays {
 
   @@index([school_id])
 }
-model Staff {
-  id          Int     @id @default(autoincrement())
-  username    String
-  designation String
-  name        String?
-  email       String   @default("null")
-  gender      Gender?
-  mobile      String   @unique
-  school_id   Int
-  class_ids   Json     @default("null")
-  photo       Bytes?   @default("null")
-
-  school      School          @relation(fields: [school_id], references: [id])
-  user        Attendance_user @relation("UserToStaff1", fields: [username, school_id], references: [username, school_id], onDelete: Restrict, onUpdate: Cascade)
-  attendances StaffAttendance[]
-  classes     Classes[]       @relation("class_ids")
-
-  @@unique([username, school_id]) // ✅ staff username unique within school
-  @@index([school_id])
-}
-model StaffAttendance {
-  username  String
-  school_id Int
-  date      DateTime
-  fn_status String   @default("null")
-  an_status String   @default("null")
-
-  school School @relation(fields: [school_id], references: [id])
-  staff  Staff  @relation(fields: [username, school_id], references: [username, school_id])
-  
-@@unique([username, school_id, date], name: "username_school_date_staff")
-  @@index([school_id])
-}
-
 model Student {
   id        Int     @id @default(autoincrement())
   username  String
@@ -152,6 +118,60 @@ model Student {
   @@unique([username, school_id]) // ✅ student username unique within school
   @@index([school_id])
   @@index([class_id])
+}
+model Staff {
+  id          Int     @id @default(autoincrement())
+  username    String
+  designation String
+  name        String?
+  email       String   @default("null")
+  gender      Gender?
+  mobile      String
+  school_id   Int
+  class_ids   Json     @default("null")
+  photo       Bytes?   @default("null")
+
+  school      School          @relation(fields: [school_id], references: [id])
+  user        Attendance_user @relation("UserToStaff1", fields: [username, school_id], references: [username, school_id], onDelete: Restrict, onUpdate: Cascade)
+  attendances StaffAttendance[]
+  classes     Classes[]       @relation("class_ids")
+
+  @@unique([username, school_id]) // ✅ username unique within school
+  @@unique([mobile, school_id])   // ✅ mobile unique within school
+  @@index([school_id])
+}
+
+model Admin {
+  id          Int     @id @default(autoincrement())
+  name        String?
+  designation String
+  gender      String  @default("null")
+  mobile      String
+  email       String  @default("example@gmail.com")
+  photo       Bytes?
+  username    String
+  school_id   Int
+
+  school School          @relation(fields: [school_id], references: [id])
+  user   Attendance_user @relation(fields: [username, school_id], references: [username, school_id])
+
+  @@unique([username, school_id]) // ✅ username unique within school
+  @@unique([mobile, school_id])   // ✅ mobile unique within school
+  @@index([school_id])
+}
+
+model StaffAttendance {
+  username  String
+  school_id Int
+  date      DateTime
+  fn_status String   @default("null")
+  an_status String   @default("null")
+
+  school School @relation(fields: [school_id], references: [id])
+  staff  Staff  @relation(fields: [username, school_id], references: [username, school_id])
+  
+@@unique([username, school_id, date], name: "username_school_date_staff")
+  @@index([school_id])
 }
 
 model StudentAttendance {
@@ -215,23 +235,6 @@ model Tickets {
   school School @relation(fields: [school_id], references: [id])
 }
 
-model Admin {
-  id          Int     @id @default(autoincrement())
-  name        String?
-  designation String
-  gender      String  @default("null")
-  mobile      String  @unique
-  email       String  @default("example@gmail.com")
-  photo       Bytes?
-  username    String
-  school_id   Int
-
-  school School          @relation(fields: [school_id], references: [id])
-  user   Attendance_user @relation(fields: [username, school_id], references: [username, school_id])
-
-  @@unique([username, school_id]) // ✅ admin username unique within school
-  @@index([school_id])
-}
 
 
 model Messages {

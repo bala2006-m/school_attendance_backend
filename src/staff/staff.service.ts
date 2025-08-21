@@ -26,8 +26,8 @@ export class StaffService {
       }
     }
 
-    return this.prisma.staff.updateMany({
-      where: { username, school_id },
+    return this.prisma.staff.update({
+      where: {  username_school_id: { username, school_id: Number(school_id) } },
       data: updateData,
     });
   }
@@ -38,8 +38,8 @@ export class StaffService {
       throw new BadRequestException('Username is required');
     }
 
-    return this.prisma.staff.findFirst({
-      where: { username, school_id: Number(school_id) },
+    return this.prisma.staff.findUnique({
+      where: {  username_school_id: { username, school_id: Number(school_id) } },
       select: {
         id: true,
         username: true,
@@ -58,8 +58,8 @@ export class StaffService {
   /** ---------------- FIND STAFF ---------------- */
   async findByUsername(username: string, school_id: number) {
     try {
-      return await this.prisma.staff.findFirst({
-        where: { username, school_id: Number(school_id) },
+      return await this.prisma.staff.findUnique({
+        where: {  username_school_id: { username, school_id: Number(school_id) }},
         select: {
           school_id: true,
           name: true,
@@ -76,25 +76,32 @@ export class StaffService {
       throw error;
     }
   }
+async findByMobile(mobile: string, school_id: number) {
+  try {
+    const normalizedMobile = `+91${mobile}`;
 
-  async findByMobile(mobile: string, school_id: number) {
-    try {
-      const normalizedMobile = `+91${mobile}`;
-
-      return await this.prisma.staff.findFirst({
-        where: { mobile: normalizedMobile, school_id },
-        select: { username: true },
-      });
-    } catch (error) {
-      console.error('Database query error:', error);
-      throw error;
-    }
+    return await this.prisma.staff.findUnique({
+      where: {
+        mobile_school_id: {
+          mobile: normalizedMobile,
+          school_id: school_id,
+        },
+      },
+      select: {
+        username: true,
+      },
+    });
+  } catch (error) {
+    console.error("Database query error:", error);
+    throw error;
   }
+}
+
 
   /** ---------------- REGISTER STAFF ---------------- */
   async register(dto: RegisterStaffDto) {
-    const exists = await this.prisma.staff.findFirst({
-      where: { username: dto.username, school_id: dto.school_id },
+    const exists = await this.prisma.staff.findUnique({
+      where: {  username_school_id: { username:dto.username, school_id: Number(dto.school_id) }},
     });
 
     if (exists) {
@@ -147,7 +154,7 @@ export class StaffService {
 
   /** ---------------- UPDATE STAFF ---------------- */
   async updateStaff(username: string, dto: UpdateStaffDto, school_id: number) {
-    const staff = await this.prisma.staff.findFirst({ where: { username, school_id } });
+    const staff = await this.prisma.staff.findUnique({ where: {  username_school_id: { username, school_id: Number(school_id) } } });
 
     if (!staff) {
       return { status: 'error', message: 'Staff not found' };
@@ -164,21 +171,21 @@ export class StaffService {
       }
     }
 
-    return this.prisma.staff.updateMany({
-      where: { username, school_id },
+    return this.prisma.staff.update({
+      where: {  username_school_id: { username, school_id: Number(school_id) }},
       data: updateData,
     });
   }
 
   /** ---------------- DELETE STAFF ---------------- */
   async deleteStaff(username: string, school_id: number) {
-    const exists = await this.prisma.staff.findFirst({ where: { username, school_id } });
+    const exists = await this.prisma.staff.findUnique({ where: {  username_school_id: { username, school_id: Number(school_id) } } });
 
     if (!exists) {
       return { status: 'error', message: 'Staff not found' };
     }
 
-    await this.prisma.staff.deleteMany({ where: { username, school_id } });
+    await this.prisma.staff.delete({ where: {  username_school_id: { username, school_id: Number(school_id) } } });
 
     return { status: 'success', message: `Staff '${username}' deleted.` };
   }

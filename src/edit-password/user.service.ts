@@ -13,11 +13,9 @@ export class UserService {
     oldPassword: string;
     newPassword: string;
   }) {
-    const user = await this.prisma.attendance_user.findFirst({
+    const user = await this.prisma.attendance_user.findUnique({
       where: {
-        username: dto.username,
-        role: dto.role,
-        school_id: dto.school_id,
+         username_school_id: { username:dto.username, school_id: Number(dto.school_id) }
       },
     });
 
