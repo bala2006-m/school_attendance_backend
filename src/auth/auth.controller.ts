@@ -18,6 +18,7 @@ import * as fs from 'fs';
 import * as ExcelJS from 'exceljs';
 import { log } from 'console';
 import { Table } from 'typeorm';
+import { Param } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
@@ -35,197 +36,199 @@ export class AuthController {
   async registerStudent(@Body() dto: RegisterStudentDto) {
     return this.authService.registerStudent(dto);
   }
-
-  @Post('excel-upload/:table')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          const folder = `./uploads/${req.params.table}`;
-          if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
-          cb(null, folder);
-        },
-        filename: (req, file, cb) =>
-          cb(null, `${Date.now()}-${file.originalname}`),
-      }),
-      fileFilter: (req, file, cb) => {
-        const allowedMimeTypes = [
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'application/vnd.ms-excel',
-        ];
-        if (allowedMimeTypes.includes(file.mimetype)) cb(null, true);
-        else cb(new BadRequestException('Only Excel files are allowed'), false);
+@Post('excel-upload/:table/:school_id')
+@UseInterceptors(
+  FileInterceptor('file', {
+    storage: diskStorage({
+      destination: (req, file, cb) => {
+        const folder = `./uploads/${req.params.table}`;
+        if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
+        cb(null, folder);
       },
+      filename: (req, file, cb) =>
+        cb(null, `${Date.now()}-${file.originalname}`),
     }),
-  )
-  async uploadExcel(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: any,
-  ) {
-    if (!file) throw new BadRequestException('No file uploaded');
+    fileFilter: (req, file, cb) => {
+      const allowedMimeTypes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+      ];
+      if (allowedMimeTypes.includes(file.mimetype)) cb(null, true);
+      else cb(new BadRequestException('Only Excel files are allowed'), false);
+    },
+  }),
+)
+async uploadExcel(
+  @UploadedFile() file: Express.Multer.File,
+  @Req() req: any,
+) {
+  if (!file) throw new BadRequestException('No file uploaded');
 
-    const table = req.params.table;
-    if (!['admin', 'staff', 'students'].includes(table)) {
-      throw new BadRequestException('Invalid table type');
+  const table = req.params.table;
+  const paramSchoolId = req.params.school_id;
+
+  if (!['admin', 'staff', 'students'].includes(table)) {
+    throw new BadRequestException('Invalid table type');
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(file.path);
+  const sheet = workbook.worksheets[0];
+  if (!sheet) throw new BadRequestException('Excel file has no sheets');
+
+  const createdRecords: { row: number; username: string; reason: string }[] = [];
+  const existingRecords: { row: number; username: string; reason: string }[] = [];
+  const errors: { row: number; username: string; reason: string }[] = [];
+  const emptyRows: { row: number; reason: string }[] = [];
+  const mismatched: { row: number; username: string; expected: string; found: string }[] = [];
+
+  let totalRows = 0;
+
+  for (let i = 2; i <= sheet.rowCount; i++) {
+    const row = sheet.getRow(i);
+
+    // ✅ Check if row is null or truly empty
+    if (
+      !row ||
+      !Array.isArray(row.values) ||
+      row.values.length === 0 ||
+      (Array.isArray(row.values) && row.values.every((v) => v === null))
+    ) {
+      emptyRows.push({ row: i - 1, reason: 'Empty row detected' });
+      continue;
     }
 
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(file.path);
-    const sheet = workbook.worksheets[0];
-    if (!sheet) throw new BadRequestException('Excel file has no sheets');
+    const valuesArray = Array.isArray(row.values)
+      ? row.values.slice(1)
+      : Object.values(row.values);
 
-    const createdRecords: { row: number; username: string; reason: string }[] =
-      [];
-    const existingRecords: { row: number; username: string; reason: string }[] =
-      [];
-    const errors: { row: number; username: string; reason: string }[] = [];
-    const emptyRows: { row: number; reason: string }[] = [];
+    const isRowCompletelyEmpty = valuesArray.every(
+      (cell) =>
+        !cell ||
+        (typeof cell === 'object' && 'text' in cell && !cell.text) ||
+        (typeof cell === 'string' && cell.trim() === ''),
+    );
 
-    let totalRows = 0;
+    if (isRowCompletelyEmpty) {
+      emptyRows.push({ row: i - 1, reason: 'Empty row detected' });
+      continue;
+    }
 
-    for (let i = 2; i <= sheet.rowCount; i++) {
-      const row = sheet.getRow(i);
+    totalRows++;
 
-      // ✅ Check if row is null or truly empty (ExcelJS quirk fix)
-      if (
-        !row ||
-        !Array.isArray(row.values) ||
-        row.values.length === 0 ||
-        (Array.isArray(row.values) && row.values.every((v) => v === null))
-      ) {
+    const dto = this.mapRowToDto(valuesArray, table);
+    dto.table = table;
+
+    // ✅ Check school_id mismatch
+    if (dto.school_id !== paramSchoolId) {
+      mismatched.push({
+        row: i - 1,
+        username: dto.username || 'Unknown',
+        expected: paramSchoolId,
+        found: dto.school_id || 'empty',
+      });
+      continue;
+    }
+
+    try {
+      const result = await this.authService.registerDesignation1(dto);
+
+      if (result?.emptyRow) {
         emptyRows.push({ row: i - 1, reason: 'Empty row detected' });
         continue;
       }
 
-      // ✅ Convert row to array (skip index 0)
-      const valuesArray = Array.isArray(row.values)
-        ? row.values.slice(1)
-        : Object.values(row.values);
-
-      // ✅ Check if all cells are blank/empty objects
-      const isRowCompletelyEmpty = valuesArray.every(
-        (cell) =>
-          !cell ||
-          (typeof cell === 'object' && 'text' in cell && !cell.text) || // Handle { text: '' }
-          (typeof cell === 'string' && cell.trim() === ''),
-      );
-
-      if (isRowCompletelyEmpty) {
-        emptyRows.push({ row: i - 1, reason: 'Empty row detected' });
-        continue;
-      }
-
-      totalRows++;
-
-      const dto = this.mapRowToDto(valuesArray, table);
-      dto.table = table;
-
-      try {
-        const result = await this.authService.registerDesignation1(dto);
-
-        if (result?.emptyRow) {
-          emptyRows.push({ row: i - 1, reason: 'Empty row detected' });
-          continue;
-        }
-
-        if (result?.alreadyExisting) {
-          existingRecords.push({
-            row: i - 1,
-            username: dto.username || 'Unknown',
-            reason: 'Already exists',
-          });
-        } else if (result) {
-          createdRecords.push({
-            row: i - 1,
-            username: dto.username || 'Unknown',
-            reason: 'Created successfully',
-          });
-        }
-      } catch (err) {
-        errors.push({
+      if (result?.alreadyExisting) {
+        existingRecords.push({
           row: i - 1,
-          username: valuesArray[0]?.toString()?.trim() || 'Unknown',
-          reason: err.message || 'Unknown error',
+          username: dto.username || 'Unknown',
+          reason: 'Already exists',
+        });
+      } else if (result) {
+        createdRecords.push({
+          row: i - 1,
+          username: dto.username || 'Unknown',
+          reason: 'Created successfully',
         });
       }
+    } catch (err) {
+      errors.push({
+        row: i - 1,
+        username: valuesArray[0]?.toString()?.trim() || 'Unknown',
+        reason: err.message || 'Unknown error',
+      });
     }
+  }
 
-    // ✅ If Excel has no data rows (only empties)
-    if (totalRows === 0 && emptyRows.length > 0) {
+  // ✅ If Excel has no valid rows
+  if (totalRows === 0 && emptyRows.length > 0) {
+    return {
+      Table: table,
+      status: 'failed',
+      message: 'Your Excel is empty. Please upload a valid file with data.',
+    };
+  }
+
+  return {
+    Table: table,
+    status: 'success',
+    message: `${createdRecords.length} created, ${existingRecords.length} duplicates, ${emptyRows.length} empty rows, ${mismatched.length} mismatched school_id, ${errors.length} errors.`,
+    created: createdRecords,
+    duplicates: existingRecords,
+    empty: emptyRows,
+    mismatched: mismatched,
+    errors: errors,
+  };
+}
+
+private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
+  switch (table) {
+    case 'admin':
       return {
-        Table: table,
-        status: 'failed',
-        message: 'Your Excel is empty. Please upload a valid file with data.',
-        // empty: emptyRows,
+        username: values[0]?.toString()?.trim() ?? '',
+        name: values[1]?.toString()?.trim() ?? '',
+        gender: values[2]?.toString()?.trim() ?? '',
+        designation: values[3]?.toString()?.trim() ?? '',
+        school_id: values[4]?.toString()?.trim() ?? '',
+        mobile: values[5]?.toString()?.trim() ?? '',
+        email: values[6]?.toString()?.trim() ?? '',
+        class_id: '',
+        password: '',
+        role: '',
+        table,
       };
-    }
-
-    return totalRows === 0 && emptyRows.length > 0
-      ? {
-          Table: table,
-          status: 'failed',
-          message: 'Your Excel is empty. Please upload a valid file with data.',
-          // empty: emptyRows,
-        }
-      : {
-          Table: table,
-          status: 'success',
-          message: `${createdRecords.length} created, ${existingRecords.length} duplicates, ${emptyRows.length} empty rows, ${errors.length} errors.`,
-          created: createdRecords,
-          duplicates: existingRecords,
-          empty: emptyRows,
-          errors: errors,
-        };
+    case 'staff':
+      return {
+        username: values[0]?.toString()?.trim() ?? '',
+        name: values[1]?.toString()?.trim() ?? '',
+        gender: values[2]?.toString()?.trim() ?? '',
+        designation: values[3]?.toString()?.trim() ?? '',
+        school_id: values[4]?.toString()?.trim() ?? '',
+        mobile: values[5]?.toString()?.trim() ?? '',
+        email: values[6]?.toString()?.trim() ?? '',
+        password: values[7]?.toString()?.trim() ?? '',
+        role: '',
+        class_id: '',
+        table,
+      };
+    case 'students':
+      return {
+        username: values[0]?.toString()?.trim() ?? '',
+        name: values[1]?.toString()?.trim() ?? '',
+        gender: values[2]?.toString()?.trim() ?? '',
+        mobile: values[3]?.toString()?.trim() ?? '',
+        email: values[4]?.toString()?.trim() ?? '',
+        school_id: values[5]?.toString()?.trim() ?? '',
+        class_id: values[6]?.toString()?.trim() ?? '',
+        password: values[7]?.toString()?.trim() ?? '',
+        role: '',
+        designation: '',
+        table,
+      };
+    default:
+      throw new BadRequestException('Unknown table');
   }
-
-  private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
-    switch (table) {
-      case 'admin': // Map Excel columns to admin fields
-        return {
-          username: values[0]?.toString()?.trim() ?? '',
-          name: values[1]?.toString()?.trim() ?? '',
-          gender: values[2]?.toString()?.trim() ?? '',
-          designation: values[3]?.toString()?.trim() ?? '',
-          school_id: values[4]?.toString()?.trim() ?? '',
-          mobile: values[5]?.toString()?.trim() ?? '',
-          email: values[6]?.toString()?.trim() ?? '',
-          class_id: '',
-          password: '',
-          role: '',
-          table,
-        };
-      case 'staff': // Map Excel columns to staff fields (order must match Excel)
-        return {
-          username: values[0]?.toString()?.trim() ?? '',
-          name: values[1]?.toString()?.trim() ?? '',
-          gender: values[2]?.toString()?.trim() ?? '',
-          designation: values[3]?.toString()?.trim() ?? '',
-          school_id: values[4]?.toString()?.trim() ?? '',
-          mobile: values[5]?.toString()?.trim() ?? '',
-          email: values[6]?.toString()?.trim() ?? '',
-          password: values[7]?.toString()?.trim() ?? '',
-          role: '',
-          class_id: '',
-          table,
-        };
-      case 'students': // Mapping for students (designation and role intentionally blank)
-        return {
-          username: values[0]?.toString()?.trim() ?? '',
-          name: values[1]?.toString()?.trim() ?? '',
-          gender: values[2]?.toString()?.trim() ?? '',
-          mobile: values[3]?.toString()?.trim() ?? '',
-          email: values[4]?.toString()?.trim() ?? '',
-          school_id: values[5]?.toString()?.trim() ?? '',
-          class_id: values[6]?.toString()?.trim() ?? '',
-          password: values[7]?.toString()?.trim() ?? '',
-          role: '', // Students do not have a role
-          designation: '', // Students do not have a designation
-          table,
-        };
-      default:
-        throw new BadRequestException('Unknown table');
-    }
-  }
+}
 
    @Post('send_otp')
   async sendOtp(@Body() body: { email: string; otp: string }) {
