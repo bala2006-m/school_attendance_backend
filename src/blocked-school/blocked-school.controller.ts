@@ -31,4 +31,9 @@ export class BlockedSchoolController {
   findAll() {
     return this.blockedSchoolService.findAll();
   }
+  
+  @Get('is-blocked/:id')
+  async isBlocked(@Param('id', ParseIntPipe) id: number) {
+    return this.blockedSchoolService.isBlocked(id);
+  }
 }

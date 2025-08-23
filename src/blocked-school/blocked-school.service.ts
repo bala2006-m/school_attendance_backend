@@ -36,4 +36,19 @@ export class BlockedSchoolService {
       include: { school: true },
     });
   }
+  
+  async isBlocked(schoolId: number): Promise<{ isBlocked: boolean; reason?: string }> {
+    const blocked = await this.prisma.blockedSchool.findUnique({
+      where: { school_id: Number(schoolId) },
+    });
+
+    if (blocked) {
+      return {
+        isBlocked: true,
+        reason: blocked.reason,
+      };
+    }
+
+    return { isBlocked: false };
+  }
 }
