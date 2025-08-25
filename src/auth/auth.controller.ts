@@ -184,8 +184,8 @@ console.log(valuesArray);
     errors: errors,
   };
 }
-
 private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
+  const get = (i: number) => this.getCellValue(values[i]);
   switch (table) {
     case 'admin':
       return {
@@ -195,7 +195,7 @@ private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
         designation: values[3]?.toString()?.trim() ?? '',
         school_id: values[4]?.toString()?.trim() ?? '',
         mobile: values[5]?.toString()?.trim() ?? '',
-        email: values[6]?.toString()?.trim() ?? '',
+        email: get(6),
         class_id: '',
         password: '',
         role: '',
@@ -209,7 +209,7 @@ private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
         designation: values[3]?.toString()?.trim() ?? '',
         school_id: values[4]?.toString()?.trim() ?? '',
         mobile: values[5]?.toString()?.trim() ?? '',
-        email: values[6]?.toString()?.trim() ?? '',
+        email: get(6),
         password: values[7]?.toString()?.trim() ?? '',
         role: '',
         class_id: '',
@@ -221,7 +221,7 @@ private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
         name: values[1]?.toString()?.trim() ?? '',
         gender: values[2]?.toString()?.trim() ?? '',
         mobile: values[3]?.toString()?.trim() ?? '',
-        email: values[4]?.toString()?.trim() ?? '',
+        email: get(4),
         school_id: values[5]?.toString()?.trim() ?? '',
         class_id: values[6]?.toString()?.trim() ?? '',
         password: values[7]?.toString()?.trim() ?? '',
@@ -231,9 +231,12 @@ private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
       };
     default:
       throw new BadRequestException('Unknown table');
-  }
+  }}
+private getCellValue(cell: any): string {
+  if (cell == null) return '';
+  if (typeof cell === 'object' && 'text' in cell) return cell.text?.toString()?.trim() ?? '';
+  return cell.toString().trim();
 }
-
    @Post('send_otp')
   async sendOtp(@Body() body: { email: string; otp: string }) {
     const { email, otp } = body;
