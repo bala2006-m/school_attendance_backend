@@ -217,7 +217,7 @@ export class AttendanceService {
           gte: fromDate,
           lte: toDate,
         },
-        school_id
+        school_id:Number(school_id)
       },
       select: {
         date: true,

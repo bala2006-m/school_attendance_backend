@@ -62,6 +62,8 @@ async uploadExcel(
   @UploadedFile() file: Express.Multer.File,
   @Req() req: any,
 ) {
+  console.log('a');
+  
   if (!file) throw new BadRequestException('No file uploaded');
 
   const table = req.params.table;
@@ -86,6 +88,7 @@ async uploadExcel(
 
   for (let i = 2; i <= sheet.rowCount; i++) {
     const row = sheet.getRow(i);
+console.log(row.values);
 
     // ✅ Check if row is null or truly empty
     if (
@@ -115,6 +118,7 @@ async uploadExcel(
     }
 
     totalRows++;
+console.log(valuesArray);
 
     const dto = this.mapRowToDto(valuesArray, table);
     dto.table = table;
@@ -198,7 +202,7 @@ private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
         table,
       };
     case 'staff':
-      return {
+   return {
         username: values[0]?.toString()?.trim() ?? '',
         name: values[1]?.toString()?.trim() ?? '',
         gender: values[2]?.toString()?.trim() ?? '',
@@ -212,7 +216,7 @@ private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
         table,
       };
     case 'students':
-      return {
+     return {
         username: values[0]?.toString()?.trim() ?? '',
         name: values[1]?.toString()?.trim() ?? '',
         gender: values[2]?.toString()?.trim() ?? '',
