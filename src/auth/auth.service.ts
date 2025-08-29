@@ -303,6 +303,13 @@ export class AuthService {
         });
         if (!school)
           throw new BadRequestException(`Invalid school_id: ${schoolIdInt}`);
+const classes = await this.prisma.classes.findUnique({
+          where: { id: Number(classIdInt),
+            school_id:schoolIdInt
+           },
+        });
+        if (!classes)
+          throw new BadRequestException(`Invalid class_id: ${classIdInt}`);
 
         const existingStudent = await this.prisma.student.findUnique({
           where: {  username_school_id: { username, school_id: Number(school_id) }},

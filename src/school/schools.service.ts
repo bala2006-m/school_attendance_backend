@@ -39,6 +39,7 @@ async create(createSchoolDto: CreateSchoolDto, file: Express.Multer.File) {
 
   return this.prisma.school.create({
     data: {
+      id:Number(createSchoolDto.schoolId),
       name: createSchoolDto.name,
       address: createSchoolDto.address,
       photo: new Uint8Array(file.buffer),

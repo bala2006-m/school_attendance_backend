@@ -8,4 +8,8 @@ export class CreateSchoolDto {
   @IsString()
   @IsNotEmpty()
   address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  schoolId: string;
 }
