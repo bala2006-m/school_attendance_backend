@@ -197,7 +197,7 @@ private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
         mobile: values[5]?.toString()?.trim() ?? '',
         email: get(6),
         class_id: '',
-        password: '',
+        password: values[7]?.toString()?.trim() ?? '',
         role: '',
         table,
       };
