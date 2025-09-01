@@ -56,4 +56,17 @@ async deleteUser(
        orderBy: { username: 'asc' },
     });
   }
+  async getUsers(role: string) {
+    return this.prisma.attendance_user.findMany({
+      where: {
+        role: role.toLowerCase(), 
+      },
+      select: {
+        id: true,
+        username: true,
+        school_id: true,
+      },
+       orderBy: { username: 'asc' },
+    });
+  }
 }

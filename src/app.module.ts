@@ -17,8 +17,8 @@ import { MessagesModule } from './messages/messages.module';
 import { LeaveRequestModule } from './leave_request/leave-request.module';
 import { NewsModule } from './news/news.module';
 import { BlockedSchoolModule} from'./blocked-school/blocked-school.module';
-import { UserModule } from './edit-password/user.module'
-
+import { UserModule } from './edit-password/user.module';
+import { HomeworkModule } from'./homework/homework.module';
 @Module({
   imports: [
     StudentsModule,
@@ -38,6 +38,7 @@ import { UserModule } from './edit-password/user.module'
      NewsModule,
      BlockedSchoolModule,
      UserModule,
+     HomeworkModule,
   ],
   controllers: [AppController],
   providers: [AppService],

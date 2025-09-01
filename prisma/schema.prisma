@@ -24,21 +24,39 @@ enum DayOfWeek {
   Fri
   Sat
 }
-
 model Attendance_user {
   id        Int    @id @default(autoincrement())
   username  String
   password  String
   role      String
   school_id Int
+  fcmToken  String? 
 
   school   School    @relation(fields: [school_id], references: [id])
   staff    Staff?    @relation("UserToStaff1")
   students Student[]
   admin    Admin?
-
-  @@unique([username, school_id]) // ✅ unique only within the same school
+  messages  RealTimeMessage[]
+  @@unique([username, school_id]) // usernames unique per school
   @@index([school_id])
+}
+
+model RealTimeMessage {
+  id         Int              @id @default(autoincrement())
+  text       String
+  role       String
+  school_id  Int
+  classId    Int?
+  createdAt  DateTime         @default(now())
+
+  senderId   Int
+  sender     Attendance_user  @relation(fields: [senderId], references: [id])
+  senderName String           
+
+  school     School           @relation(fields: [school_id], references: [id])
+
+  @@index([school_id])
+  @@index([senderId])
 }
 
 
@@ -61,6 +79,7 @@ model School {
   Messages           Messages[]
  Tickets            Tickets[]
  blockedSchool  BlockedSchool[] 
+ messages  RealTimeMessage[]
  
 }
 model BlockedSchool{
@@ -267,7 +286,20 @@ model LeaveRequest {
   @@index([username])
   @@index([school_id, class_id])
 }
+model Homework{
+  id         Int      @id @default(autoincrement())
+  school_id  Int
+  class_id   Int
+  title      String
+  subject    String
+  description String
+  assigned_date  DateTime 
+  due_date    DateTime 
+  assigned_by String
+  attachments String?
 
+  @@index([school_id, class_id])
+}
 enum Role {
   admin
   staff

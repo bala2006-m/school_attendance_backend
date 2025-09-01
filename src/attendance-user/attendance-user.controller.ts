@@ -34,4 +34,9 @@ export class AttendanceUserController {
   ) {
     return this.attendanceUserService.getUsersByRole(role,school_id);
   }
+   @Get('attendance-users-all')
+  async getUser(@Query('role') role: string
+  ) {
+    return this.attendanceUserService.getUsers(role);
+  }
 }
