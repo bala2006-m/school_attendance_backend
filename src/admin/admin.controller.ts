@@ -22,6 +22,21 @@ export class AdminController {
       };
     }
   }
+  @Get('fetch_all_admin')
+  async fetchAllAdminData(@Query('school_id') school_id?:number) {
+    try {
+      const data = await this.adminService.getAllAdmin(school_id);
+      return {
+        status: 'success',
+        data,
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        message: error.message,
+      };
+    }
+  }
   @Patch(':username/:school_id')
 async updateAdmin(
   @Param('username') username: string,

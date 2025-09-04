@@ -56,6 +56,30 @@ export class AdminService {
     }));
   }
 
+
+async getAllAdmin( school_id?: number) {
+    
+
+    // fetch all admins
+    const admins = await this.prisma.admin.findMany({
+       where: {
+          school_id: Number(school_id) 
+        },
+      select: {
+        name: true,
+        username: true,
+        designation: true,
+        mobile: true,
+        email: true,
+        school_id: true,
+        gender: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    return admins;
+  }
+
   /**
    * Update an admin’s profile
    */

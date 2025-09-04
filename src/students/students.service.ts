@@ -157,9 +157,8 @@ export class StudentsService {
   }
   async getAllStudents(school_id?: string) {
     try {
-      const whereClause = school_id
-        ? { school_id: parseInt(school_id, 10) }
-        : {};
+      const whereClause = 
+       { school_id: Number(school_id) };
 
       const students = await this.prisma.student.findMany({
         where: whereClause,
@@ -170,6 +169,7 @@ export class StudentsService {
           gender: true,
           email: true,
           mobile: true,
+          class_id:true,
         },
       });
 
