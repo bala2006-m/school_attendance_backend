@@ -8,6 +8,7 @@ export class FeedbackService {
 
   async createFeedback(data: {
     name: string;
+    username:string;
     email: string;
     feedback: string;
     school_id: number;

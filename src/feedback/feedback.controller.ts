@@ -7,11 +7,12 @@ export class FeedbackController {
 
   @Post()
   async storeFeedback(@Body() body: any) {
-    const { name, email, feedback, schoolId, classId } = body;
+    const { name,username, email, feedback, schoolId, classId } = body;
 
     // Delegate creation to feedbackService
     const newFeedback = await this.feedbackService.createFeedback({
       name,
+      username,
       email,
       feedback,
       school_id: parseInt(schoolId, 10),
