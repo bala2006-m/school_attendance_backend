@@ -46,6 +46,22 @@ export class RegisterDesignationDto {
   @IsString()
   faculty?: string;
 
+  @IsOptional()
+  @IsString()
+  DOB?: string;
+
+  @IsOptional()
+  @IsString()
+  community?: string;
+
+  @IsOptional()
+  @IsString()
+  father_name?: string;
+
+  @IsOptional()
+  @IsString()
+  route?: string;
+  
   @IsIn(['admin', 'staff', 'students'])
   table: 'admin' | 'staff' | 'students';  // To identify role/table
 }

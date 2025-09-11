@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { RegisterDesignationDto } from './dto/register-designation.dto';
 import { RegisterStudentDto } from './dto/register-student.dto';
 import * as nodemailer from 'nodemailer';
+import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -183,7 +184,7 @@ export class AuthService {
       );
     }
   }
-  async registerDesignation1(dto) {
+  async registerDesignation1(dto,faculty?:string) {
     const {
       username,
       name,
@@ -196,7 +197,12 @@ export class AuthService {
       class_id,
       password,
       table,
+      DOB,
+      community,
+      father_name,
+      route
     } = dto;
+
 
     // ✅ Detect fully empty rows
     if (
@@ -209,7 +215,7 @@ export class AuthService {
       (!class_id || class_id.toString().trim() === '') &&
       (!password || password.trim() === '')
     ) {
-      console.log(`⚠️ Empty row detected for table: ${table}`);
+      // console.log(⚠ Empty row detected for table: ${table});
       return { emptyRow: true };
     }
 
@@ -283,7 +289,7 @@ export class AuthService {
             },
           });
         }
-
+// console.log('Service Faculty:', faculty);
         return await this.prisma.staff.create({
           data: {
             username,
@@ -292,6 +298,7 @@ export class AuthService {
             designation,
             school_id: schoolIdInt,
             mobile,
+            faculty: faculty,
             email,
             class_ids:[]
           },
@@ -343,6 +350,10 @@ const classes = await this.prisma.classes.findUnique({
             photo: null,
             school_id: schoolIdInt,
             class_id: Number(classIdInt),
+            DOB:new Date(DOB),
+            community,
+            father_name,
+            route
           },
         });
       },

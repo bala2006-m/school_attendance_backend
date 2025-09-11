@@ -133,7 +133,7 @@ model Student {
   photo         Bytes?
   father_name   String  @default("null")
   community     String  @default("null")
-  DOB           String  @default("null")
+  DOB           DateTime?  @default(now())
   route         String  @default("null")
 
   class      Classes         @relation(fields: [class_id], references: [id])

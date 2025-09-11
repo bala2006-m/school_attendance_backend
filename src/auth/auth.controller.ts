@@ -36,7 +36,7 @@ export class AuthController {
   async registerStudent(@Body() dto: RegisterStudentDto) {
     return this.authService.registerStudent(dto);
   }
-@Post('excel-upload/:table/:school_id')
+@Post('excel-upload/:table/:school_id/:faculty')
 @UseInterceptors(
   FileInterceptor('file', {
     storage: diskStorage({
@@ -62,13 +62,12 @@ async uploadExcel(
   @UploadedFile() file: Express.Multer.File,
   @Req() req: any,
 ) {
-  console.log('a');
   
   if (!file) throw new BadRequestException('No file uploaded');
 
   const table = req.params.table;
   const paramSchoolId = req.params.school_id;
-
+const faculty=req.params.faculty;
   if (!['admin', 'staff', 'students'].includes(table)) {
     throw new BadRequestException('Invalid table type');
   }
@@ -88,7 +87,6 @@ async uploadExcel(
 
   for (let i = 2; i <= sheet.rowCount; i++) {
     const row = sheet.getRow(i);
-console.log(row.values);
 
     // ✅ Check if row is null or truly empty
     if (
@@ -135,33 +133,39 @@ console.log(valuesArray);
     }
 
     try {
-      const result = await this.authService.registerDesignation1(dto);
+  let result; // declare once here
 
-      if (result?.emptyRow) {
-        emptyRows.push({ row: i - 1, reason: 'Empty row detected' });
-        continue;
-      }
+  if (table === 'staff') {
+    result = await this.authService.registerDesignation1(dto, faculty);
+  } else {
+    result = await this.authService.registerDesignation1(dto);
+  }
 
-      if (result?.alreadyExisting) {
-        existingRecords.push({
-          row: i - 1,
-          username: dto.username || 'Unknown',
-          reason: 'Already exists',
-        });
-      } else if (result) {
-        createdRecords.push({
-          row: i - 1,
-          username: dto.username || 'Unknown',
-          reason: 'Created successfully',
-        });
-      }
-    } catch (err) {
-      errors.push({
-        row: i - 1,
-        username: valuesArray[0]?.toString()?.trim() || 'Unknown',
-        reason: err.message || 'Unknown error',
-      });
-    }
+  if (result?.emptyRow) {
+    emptyRows.push({ row: i - 1, reason: 'Empty row detected' });
+    continue;
+  }
+
+  if (result?.alreadyExisting) {
+    existingRecords.push({
+      row: i - 1,
+      username: dto.username || 'Unknown',
+      reason: 'Already exists',
+    });
+  } else if (result) {
+    createdRecords.push({
+      row: i - 1,
+      username: dto.username || 'Unknown',
+      reason: 'Created successfully',
+    });
+  }
+} catch (err) {
+  errors.push({
+    row: i - 1,
+    username: valuesArray[0]?.toString()?.trim() || 'Unknown',
+    reason: err.message || 'Unknown error',
+  });
+}
   }
 
   // ✅ If Excel has no valid rows
@@ -225,9 +229,15 @@ private mapRowToDto(values: any[], table: string): RegisterDesignationDto {
         school_id: values[5]?.toString()?.trim() ?? '',
         class_id: values[6]?.toString()?.trim() ?? '',
         password: values[7]?.toString()?.trim() ?? '',
+        DOB:values[8]?.toString()?.trim() ?? '',
+        community:values[9]?.toString()?.trim() ?? '',
+        father_name:values[10]?.toString()?.trim() ?? '',
+        route:values[11]?.toString()?.trim() ?? '',
         role: '',
         designation: '',
         table,
+    
+
       };
     default:
       throw new BadRequestException('Unknown table');
