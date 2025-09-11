@@ -122,15 +122,19 @@ model Holidays {
   @@index([school_id])
 }
 model Student {
-  id        Int     @id @default(autoincrement())
-  username  String
-  name      String?
-  gender    Gender?
-  email     String
-  mobile    String
-  class_id  Int
-  school_id Int
-  photo     Bytes?
+  id            Int     @id @default(autoincrement())
+  username      String
+  name          String?
+  gender        Gender?
+  email         String
+  mobile        String
+  class_id      Int
+  school_id     Int
+  photo         Bytes?
+  father_name   String  @default("null")
+  community     String  @default("null")
+  DOB           String  @default("null")
+  route         String  @default("null")
 
   class      Classes         @relation(fields: [class_id], references: [id])
   school     School          @relation(fields: [school_id], references: [id])
@@ -152,6 +156,7 @@ model Staff {
   school_id   Int
   class_ids   Json     @default("null")
   photo       Bytes?   @default("null")
+  faculty     String   @default("null")
 
   school      School          @relation(fields: [school_id], references: [id])
   user        Attendance_user @relation("UserToStaff1", fields: [username, school_id], references: [username, school_id], onDelete: Restrict, onUpdate: Cascade)

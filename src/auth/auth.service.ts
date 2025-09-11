@@ -68,7 +68,7 @@ export class AuthService {
       email,
       class_id,
       name,
-      gender,
+      gender,faculty,
     } = dto;
 
     const schoolIdInt = parseInt(school_id);
@@ -107,7 +107,8 @@ export class AuthService {
       school_id: schoolIdInt,
       mobile,
       ...(email ? { email } : {}),   // only include if provided
-      class_ids: [],                 // JSON array
+      class_ids: [], 
+      faculty,                // JSON array
     },
   });
 },

@@ -51,6 +51,7 @@ export class StaffService {
         school_id: true,
         class_ids: true,
         photo: true,
+        faculty:true,
       },
     });
   }
@@ -69,6 +70,7 @@ export class StaffService {
           class_ids: true,
           photo: true,
           email: true,
+          faculty:true,
         },
       });
     } catch (error) {
@@ -141,6 +143,7 @@ async findByMobile(mobile: string, school_id: number) {
         mobile: true,
         class_ids: true,
         photo: true,
+        faculty:true,
       },
       orderBy: { name: 'asc' },
     });
