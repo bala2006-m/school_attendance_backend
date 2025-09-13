@@ -27,5 +27,21 @@ export class UpdateStudentDto {
   @IsEnum(Gender, {
     message: 'Gender must be one of M, F, or O',
   })
-  gender?: Gender;
+  gender?:Gender;
+
+   @IsOptional()
+  @IsString()
+  father_name?: string;
+
+   @IsOptional()
+  @IsString()
+  community?: string;
+
+   @IsOptional()
+  @IsString()
+  route?: string;
+
+   @IsOptional()
+  @IsString()
+  DOB?: string;
 }

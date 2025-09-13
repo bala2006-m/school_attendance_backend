@@ -13,14 +13,14 @@ export class StudentsController {
   }
   @Put('update')
 async updateStudent(
-  @Query('username') username: string,@Query('school_id') school_id: number,
+  @Query('username') username: string,@Query('school_id') school_id: string,
   @Body() dto: UpdateStudentDto,
 ) {
   if (!username) {
     return { status: 'error', message: 'Missing username' };
   }
 
-  return this.studentsService.updateStudent(username, dto,school_id);
+  return this.studentsService.updateStudent(username,dto,school_id);
 }
 @Get('fetch_all_student_data')
   async fetchAllStudents(@Query('school_id') schoolId?: string) {
@@ -132,6 +132,10 @@ async updateStudent(
           gender: student.gender,
           email: student.email,
           mobile: student.mobile,
+          community:student.community,
+          father_name:student.father_name,
+          DOB:student.DOB,
+          route:student.route,
         },
       };
     }

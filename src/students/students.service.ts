@@ -29,6 +29,11 @@ export class StudentsService {
           photo: true,
           class_id: true,
           school_id: true,
+          community:true,
+          father_name:true,
+          DOB:true,
+          route:true,
+
         },
       });
 
@@ -118,6 +123,11 @@ export class StudentsService {
         email: true,
         mobile: true,
         gender: true,
+         community:true,
+          father_name:true,
+          DOB:true,
+          route:true,
+
       },
       orderBy: { name: 'asc' },
     });
@@ -138,6 +148,11 @@ export class StudentsService {
         email: true,
         mobile: true,
         gender: true,
+         community:true,
+          father_name:true,
+          DOB:true,
+          route:true,
+
       },
       orderBy: { name: 'asc' },
     });
@@ -170,6 +185,11 @@ export class StudentsService {
           email: true,
           mobile: true,
           class_id:true,
+           community:true,
+          father_name:true,
+          DOB:true,
+          route:true,
+
         },
       });
 
@@ -345,40 +365,63 @@ export class StudentsService {
         gender: true,
         email: true,
         mobile: true,
+         community:true,
+          father_name:true,
+          DOB:true,
+          route:true,
+
       },
     });
   }
-async updateStudent(username: string, dto: UpdateStudentDto,school_id:number) {
+async updateStudent(
+  username: string,
+  dto: UpdateStudentDto,
+  school_id: string
+): Promise<{ status: string; student?: any; message?: string }> {
+  // Find the student by composite unique key (username + school_id)
   const student = await this.prisma.student.findUnique({
-    where: { username_school_id: { username:username, school_id: Number(school_id)}  },
+    where: { username_school_id: { username, school_id:Number(school_id) } },
   });
 
   if (!student) {
     return { status: 'error', message: 'Student not found' };
   }
 
-  // Separate the photo from other fields
-  const { photo, ...restDto } = dto;
+  const { photo, DOB, ...restDto } = dto;
 
   // Prepare update data
   const updateData: any = { ...restDto };
 
-  // If photo is given, convert from base64 string to Bytes
+  // Handle photo conversion from base64 string to Buffer, if provided
   if (photo) {
     try {
       updateData.photo = Buffer.from(photo, 'base64');
-    } catch {
+    } catch (e) {
       return { status: 'error', message: 'Invalid photo format' };
     }
   }
 
-  const updated = await this.prisma.student.update({
-    where: { username_school_id: { username:username, school_id: Number(school_id)}  },
-    data: updateData,
-  });
+  // Convert DOB string (e.g. '2025-09-27') to Date object to match Prisma DateTime expected format
+  if (DOB) {
+    const parsedDate = new Date(DOB);
+    if (isNaN(parsedDate.getTime())) {
+      return { status: 'error', message: 'Invalid DOB format' };
+    }
+    updateData.DOB = parsedDate;
+  }
 
-  return { status: 'success', student: updated };
+  try {
+    const updated = await this.prisma.student.update({
+      where: { username_school_id: { username, school_id:Number(school_id) } },
+      data: updateData,
+    });
+
+    return { status: 'success', student: updated };
+  } catch (e) {
+    return { status: 'error', message: e.message };
+  }
 }
+
 
   
 }
