@@ -18,7 +18,7 @@ enum Gender {
 
 enum DayOfWeek {
   Mon
-  Tue
+  TueschoolAttendance@2a02:4780:12:f6a7::1:3306
   Wed
   Thu
   Fri
@@ -130,6 +130,7 @@ model Student {
   mobile        String
   class_id      Int
   school_id     Int
+  
   photo         Bytes?
   father_name   String  @default("null")
   community     String  @default("null")

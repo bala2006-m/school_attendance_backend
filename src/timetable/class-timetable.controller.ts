@@ -1,4 +1,4 @@
-import { Controller, Get, Query,Post,Body,Put,Param,Delete } from '@nestjs/common';
+import { Controller, Get, Query,Post,Body,Patch,Param,Delete } from '@nestjs/common';
 import { ClassTimetableService } from './class-timetable.service';
 import { SaveTimetableDto } from './dto/timetable.dto';
 
@@ -17,6 +17,7 @@ export class ClassTimetableController {
     @Query('schoolId') schoolIdStr: string,
     @Query('classId') classIdStr: string,
   ) {
+    
     const schoolId = parseInt(schoolIdStr);
     const classId = parseInt(classIdStr);
 
@@ -27,14 +28,28 @@ export class ClassTimetableController {
     const result = await this.timetableService.getTimetable(schoolId, classId);
     return { status: 'success', timetable: result };
   }
+@Delete('delete/:id')
+async delete(@Param('id') id: string) {
+ 
+
+  try {
+    const result = await this.timetableService.delete(id);
+
+    if (!result) {
+      return { status: 'fail', message: 'Timetable entry not found' };
+    }
+
+    return { status: 'success', message: 'Timetable entry deleted successfully' };
+  } catch (error) {
+  
+    return { status: 'error', message: 'Failed to delete timetable entry' };
+  }
+}
 
 //    @Put(':id')
 //     async update(@Param('id') id: number, @Body() data: Partial<CreateTimetableDto>) {
 //       return this.timetableService.update(+id, data);
 //     }
 //
-//     @Delete(':id')
-//     async delete(@Param('id') id: number) {
-//       return this.timetableService.delete(+id);
-//     }
+   
 }

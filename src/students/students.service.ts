@@ -421,7 +421,16 @@ async updateStudent(
     return { status: 'error', message: e.message };
   }
 }
+async countUsage(schoolId: string): Promise<number> {
+  const grouped = await this.prisma.studentAttendance.groupBy({
+    by: ['date'],
+    where: {
+      school_id: Number(schoolId),
+    },
+  });
 
+  return grouped.length;
+}
 
   
 }

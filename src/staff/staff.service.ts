@@ -204,4 +204,16 @@ async findByMobile(mobile: string, school_id: number) {
       count,
     };
   }
+  
+async countUsage(schoolId: string): Promise<number> {
+  const grouped = await this.prisma.staffAttendance.groupBy({
+    by: ['date'],
+    where: {
+      school_id: Number(schoolId),
+    },
+  });
+
+  return grouped.length;
+}
+
 }

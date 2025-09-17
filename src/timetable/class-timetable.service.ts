@@ -86,6 +86,7 @@ export class ClassTimetableService {
         classesId,
       },
       select: {
+        id :true,
         dayOfWeek: true,
         periodNumber: true,
         subject: true,
@@ -106,6 +107,7 @@ export class ClassTimetableService {
       }
 
       grouped[day].push({
+        id:row.id,
         period: row.periodNumber,
         subject: row.subject,
         session: row.periodNumber <= 4 ? 'FN' : 'AN',
@@ -132,6 +134,13 @@ export class ClassTimetableService {
       },
       orderBy: {
         periodNumber: 'asc',
+      },
+    });
+  }
+  async delete(id :string) {
+    return this.prisma.classTimetable.delete({
+      where: {
+        id:Number(id)
       },
     });
   }

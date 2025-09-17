@@ -160,5 +160,13 @@ getConsecutiveAbsents(
     }
      return this.studentsService.getStudentsWithLowAttendance({school_id, class_id, thresholdPercent });
   }
+
+  @Get('count_usage')
+  async countUsage(
+    @Query('school_id') school_id: string,
+  ) {
+    
+     return this.studentsService.countUsage(school_id);
+  }
 }
 

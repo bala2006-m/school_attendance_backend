@@ -200,5 +200,11 @@ export class StaffController {
 
     return this.staffService.countStaffBySchoolId(+schoolId);
   }
-
+@Get('count_usage')
+  async countUsage(
+    @Query('school_id') school_id: string,
+  ) {
+    
+     return this.staffService.countUsage(school_id);
+  }
 }
