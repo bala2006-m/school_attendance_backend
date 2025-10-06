@@ -8,6 +8,166 @@ import { log } from 'console';
 @Injectable()
 export class StudentsService {
   constructor(private prisma: PrismaService) {}
+async getStudentsWithFlatClassData(schoolId?: string) {
+  try {
+    const whereClause = schoolId ? { school_id: Number(schoolId) } : {};
+
+    // Use include only, no select at top-level
+    const students = await this.prisma.student.findMany({
+      where: whereClause,
+      orderBy: { name: 'asc' },
+      include: {
+        class: {
+          select: {
+            class: true,
+            section: true,
+          },
+        },
+      },
+    });
+
+    // Map to flatten the response
+    const flatStudents = students.map(student => ({
+      username: student.username,
+      name: student.name,
+      gender: student.gender,
+      email: student.email,
+      mobile: student.mobile,
+      class_id: student.class_id,
+      community: student.community === "null" ? null : student.community,
+      father_name: student.father_name === "null" ? null : student.father_name,
+      DOB: student.DOB,
+      route: student.route === "null" ? null : student.route,
+      class: student.class?.class ?? null,
+      section: student.class?.section ?? null,
+    }));
+
+    return { status: 'success', students: flatStudents };
+  } catch (error) {
+    return { status: 'error', message: 'Query failed', details: error.message };
+  }
+}
+
+
+
+async getCombinedStudentReport(
+  schoolId: string,
+  fromDateInput: string,
+  toDateInput: string,
+) {
+  try {
+    const fromDate = new Date(fromDateInput);
+    const toDate = new Date(toDateInput);
+    if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime()) || fromDate > toDate) {
+      return { status: 'error', message: 'Invalid date range' };
+    }
+
+    // 1. Fetch all students for the school
+    const students = await this.prisma.student.findMany({
+      where: { school_id: Number(schoolId) },
+      orderBy: { name: 'asc' },
+      select: {
+        username: true,
+        name: true,
+        gender: true,
+        class_id: true,
+      },
+    });
+
+    // 2. Fetch classes once for all class_ids
+    const classIds = Array.from(new Set(students.map(s => s.class_id)));
+    const classes = await this.prisma.classes.findMany({
+      where: {
+        id: { in: classIds },
+        school_id: Number(schoolId),
+      },
+      select: { id: true, class: true, section: true },
+    });
+    const classMap = new Map(classes.map(c => [c.id, c]));
+
+    // 3. Batch fetch attendance for all students within date range
+    // Use usernames array for filtering
+    const usernames = students.map(s => s.username);
+
+    const attendanceRecords = await this.prisma.studentAttendance.findMany({
+      where: {
+        username: { in: usernames },
+        date: { gte: fromDate, lte: toDate },
+        school_id: Number(schoolId),
+      },
+      select: {
+        username: true,
+        date: true,
+        fn_status: true,
+        an_status: true,
+        class_id: true,
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    // Organize attendance by username
+    const attendanceMap = new Map<string, typeof attendanceRecords>();
+    for (const record of attendanceRecords) {
+      if (!attendanceMap.has(record.username)) {
+        attendanceMap.set(record.username, []);
+      }
+      attendanceMap.get(record.username)!.push(record);
+    }
+
+    // 4. Build detailed student report combining class and attendance info
+    const detailedStudents = students.map(student => {
+      const classInfo = classMap.get(student.class_id) || { class: '', section: '' };
+      const attendance = attendanceMap.get(student.username) || [];
+
+      // Use improved attendance status codes: 'P' and 'A'
+      // Prepare arrays for present/absent half-day dates as ISO strings
+      const fnPresentDates: string[] = [];
+      const anPresentDates: string[] = [];
+      const fnAbsentDates: string[] = [];
+      const anAbsentDates: string[] = [];
+
+      for (const att of attendance) {
+        const dateStr = att.date.toISOString().split('T')[0];
+
+        if (att.fn_status === 'P') fnPresentDates.push(dateStr);
+        if (att.fn_status === 'A') fnAbsentDates.push(dateStr);
+        if (att.an_status === 'P') anPresentDates.push(dateStr);
+        if (att.an_status === 'A') anAbsentDates.push(dateStr);
+      }
+
+      const totalMarking = attendance.length; // two sessions per attendance record
+      const totalPresent = fnPresentDates.length + anPresentDates.length;
+const totalPercentage = totalMarking > 0 
+  ? parseFloat(((totalPresent / totalMarking) * 100).toFixed(2)) 
+  : 0;
+
+      return {
+        ...student,
+        class: classInfo.class,
+        section: classInfo.section,
+        fnPresentDates,
+        anPresentDates,
+        fnAbsentDates,
+        anAbsentDates,
+        TotalMarking: totalMarking,
+        totalPercentage: `${totalPercentage} %`,
+      };
+    });
+
+    return {
+      status: 'success',
+      students: detailedStudents,
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      message: `Failed to fetch combined student report ${error.message}`,
+      details: error.message,
+    };
+  }
+}
+
+
   async getSchoolAndClassByUsername(username: string,school_id:number) {
     return this.prisma.student.findUnique({
       where: { username_school_id: { username:username, school_id: Number(school_id)} },
@@ -375,7 +535,7 @@ export class StudentsService {
   }
 async updateStudent(
   username: string,
-  dto: UpdateStudentDto,
+  data: UpdateStudentDto,
   school_id: string
 ): Promise<{ status: string; student?: any; message?: string }> {
   // Find the student by composite unique key (username + school_id)
@@ -387,11 +547,21 @@ async updateStudent(
     return { status: 'error', message: 'Student not found' };
   }
 
-  const { photo, DOB, ...restDto } = dto;
+  const { photo, DOB, ...restDto } = data;
 
   // Prepare update data
-  const updateData: any = { ...restDto };
+  //const updateData: any = { ...restDto };
+const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name.toUpperCase;
+    if (data.father_name !== undefined) updateData.fathername = data.father_name.toUpperCase;
+    if (data.community !== undefined) updateData.community = data.community.toUpperCase;
+    if (data.route !== undefined) updateData.route = data.route.toUpperCase;
+    if (data.DOB !== undefined) updateData.DOB = data.DOB;
 
+    if (data.mobile !== undefined) updateData.mobile = data.mobile;
+    if (data.gender !== undefined) updateData.gender = data.gender.toUpperCase;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.photo) updateData.photo = Buffer.from(data.photo, 'base64');
   // Handle photo conversion from base64 string to Buffer, if provided
   if (photo) {
     try {

@@ -149,7 +149,7 @@ export class AuthService {
     };
   }
   async registerStudent(dto: RegisterStudentDto) {
-    const { username, name, gender, email, mobile, class_id, school_id } = dto;
+    const { username, name, gender, email, mobile, class_id, school_id,fatherName,community,route,dob } = dto;
 
     // Check if username exists
     const exists = await this.prisma.student.findUnique({
@@ -170,6 +170,11 @@ export class AuthService {
           mobile,
           class_id: Number(class_id),
           school_id: Number(school_id),
+          father_name:fatherName,
+          community,
+          route:route,
+          DOB:new Date(dob)
+
         },
       });
 
@@ -350,7 +355,7 @@ const classes = await this.prisma.classes.findUnique({
             photo: null,
             school_id: schoolIdInt,
             class_id: Number(classIdInt),
-            DOB:new Date(DOB),
+            DOB:new Date(Date.now()),
             community,
             father_name,
             route
@@ -377,7 +382,7 @@ const classes = await this.prisma.classes.findUnique({
 
     // ✅ Email options
     const mailOptions = {
-      from: 'balam20000002@gmail.com',
+      from: 'Noreply.ramchintech@gmail.com',
       to: email,
       subject: 'Your OTP Code',
       text: `Your OTP code is: ${otp}`,

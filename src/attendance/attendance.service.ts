@@ -407,7 +407,10 @@ async getStudentAttendanceBetweenDateRange(
 
   const totalSessions = records.length * 2;
   const totalPresent = fnPresentDates.length + anPresentDates.length;
-  const totalPercentage = totalSessions === 0 ? 0 : (totalPresent / totalSessions) * 100;
+  const totalPercentage =  records.length > 0 
+  ? parseFloat(((totalPresent /  totalSessions) * 100).toFixed(2)) 
+  : 0;
+
 
   return {
     status: 'success',
@@ -479,8 +482,9 @@ async getStudentAttendanceBetweenDateRange(
 
     const totalSessions = records.length * 2; // Each day has FN + AN
     const totalPresent = fnPresentDates.length + anPresentDates.length;
-    const totalPercentage =
-      totalSessions === 0 ? 0 : (totalPresent / totalSessions) * 100;
+    const totalPercentage = records.length > 0 
+  ? parseFloat(((totalPresent / records.length) * 100).toFixed(2)) 
+  : 0;
 
     return {
       status: 'success',
@@ -622,4 +626,91 @@ async getStudentAttendanceBetweenDateRange(
 
     return absentees.map((a) => a.username);
   }
+
+
+ async getAbsenteesWithClassDetails(
+  date: Date,
+  schoolId: number,
+  sessionField: 'fn_status' | 'an_status'
+): Promise<
+  Array<{
+    username: string;
+    name: string | null;
+    gender: string | null;
+    email: string | null;
+    mobile: string | null;
+    class_id: number;
+    school_id: number;
+    class: string | null;
+    section: string | null;
+  }>
+> {
+  try {
+    // Step 1: Get absentees' usernames and class_ids
+    const absentees = await this.prisma.studentAttendance.findMany({
+      where: {
+        date,
+        school_id: schoolId,
+        [sessionField]: 'A',
+      },
+      select: {
+        username: true,
+        class_id: true,
+      },
+    });
+
+    if (absentees.length === 0) {
+      return [];
+    }
+
+    const usernames = absentees.map((a) => a.username);
+    const classIds = [...new Set(absentees.map((a) => a.class_id))];
+
+    // Step 2: Get student details
+    const students = await this.prisma.student.findMany({
+      where: {
+        username: { in: usernames },
+        school_id: schoolId,
+      },
+      select: {
+        username: true,
+        name: true,
+        gender: true,
+        email: true,
+        mobile: true,
+        class_id: true,
+        school_id: true,
+      },
+    });
+
+    // Step 3: Get class details for all involved class_ids
+    const classes = await this.prisma.classes.findMany({
+      where: {
+        id: { in: classIds },
+        school_id: schoolId,
+      },
+      select: {
+        id: true,
+        class: true,
+        section: true,
+      },
+    });
+
+    const classById = Object.fromEntries(
+      classes.map((c) => [c.id, { class: c.class, section: c.section }])
+    );
+
+    // Step 4: Combine student and class info
+    return students.map((student) => ({
+      ...student,
+      class: classById[student.class_id]?.class ?? null,
+      section: classById[student.class_id]?.section ?? null,
+    }));
+  } catch (error) {
+    console.error('Error in getAbsenteesWithClassDetails:', error);
+    throw error;
+  }
+}
+
+
 }

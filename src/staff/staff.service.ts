@@ -16,8 +16,14 @@ export class StaffService {
   /** ---------------- UPDATE PROFILE ---------------- */
   async updateProfile(username: string, data: UpdateStaffDto, school_id: number) {
     const { photo, ...restDto } = data;
-    const updateData: any = { ...restDto };
-
+    //const updateData: any = { ...restDto };
+const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name.toUpperCase;
+    if (data.designation !== undefined) updateData.designation = data.designation.toUpperCase;
+    if (data.mobile !== undefined) updateData.mobile = data.mobile;
+    if (data.gender !== undefined) updateData.gender = data.gender.toUpperCase;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.photo) updateData.photo = Buffer.from(data.photo, 'base64');
     if (photo) {
       try {
         updateData.photo = Buffer.from(photo, 'base64');
@@ -154,7 +160,29 @@ async findByMobile(mobile: string, school_id: number) {
       staff: staffList,
     };
   }
+ async getAllBySchoolId(school_id: number) {
+    const staffList = await this.prisma.staff.findMany({
+      where: { school_id },
+      select: {
+        id: true,
+        username: true,
+        designation: true,
+        name: true,
+        email: true,
+        gender: true,
+        mobile: true,
+        class_ids: true,
+        faculty:true,
+      },
+      orderBy: { name: 'asc' },
+    });
 
+    return {
+      status: 'success',
+      count: staffList.length,
+      staff: staffList,
+    };
+  }
   /** ---------------- UPDATE STAFF ---------------- */
   async updateStaff(username: string, dto: UpdateStaffDto, school_id: number) {
     const staff = await this.prisma.staff.findUnique({ where: {  username_school_id: { username, school_id: Number(school_id) } } });

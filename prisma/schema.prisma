@@ -18,47 +18,73 @@ enum Gender {
 
 enum DayOfWeek {
   Mon
-  TueschoolAttendance@2a02:4780:12:f6a7::1:3306
+  Tue
   Wed
   Thu
   Fri
   Sat
 }
+model ExamMarks {
+  id            Int      @id @default(autoincrement())
+  school_id     Int
+  class_id      Int
+  username      String
+  title         String
+  min_max_marks Json
+  marks         Json
+  subjects      Json
+  subject_rank  Json
+  rank          String?
+  created_by    String
+  created_at    DateTime @default(now())
+  updated_by    String
+  updated_at    DateTime @updatedAt
+  status        String? @default("inactive")
+  date          DateTime?
+  session       String?
+
+  class  Classes         @relation(fields: [class_id], references: [id])
+  school School          @relation(fields: [school_id], references: [id])
+  @@unique([school_id, class_id, username, title], name: "unique_exam_per_student")
+}
+
+
+
 model Attendance_user {
-  id        Int    @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   username  String
   password  String
   role      String
   school_id Int
-  fcmToken  String? 
+  fcmToken  String?
 
-  school   School    @relation(fields: [school_id], references: [id])
-  staff    Staff?    @relation("UserToStaff1")
+  school   School            @relation(fields: [school_id], references: [id])
+  staff    Staff?            @relation("UserToStaff1")
   students Student[]
   admin    Admin?
-  messages  RealTimeMessage[]
+  messages RealTimeMessage[]
+  
   @@unique([username, school_id]) // usernames unique per school
   @@index([school_id])
 }
 
 model RealTimeMessage {
-  id         Int              @id @default(autoincrement())
-  text       String
-  role       String
-  school_id  Int
-  classId    Int?
-  createdAt  DateTime         @default(now())
+  id        Int      @id @default(autoincrement())
+  text      String
+  role      String
+  school_id Int
+  classId   Int?
+  createdAt DateTime @default(now())
 
   senderId   Int
-  sender     Attendance_user  @relation(fields: [senderId], references: [id])
-  senderName String           
+  sender     Attendance_user @relation(fields: [senderId], references: [id])
+  senderName String
 
-  school     School           @relation(fields: [school_id], references: [id])
+  school School @relation(fields: [school_id], references: [id])
 
   @@index([school_id])
   @@index([senderId])
 }
-
 
 model School {
   id      Int    @id @default(autoincrement())
@@ -77,19 +103,21 @@ model School {
   studentAttendances StudentAttendance[]
   admins             Admin[]
   Messages           Messages[]
- Tickets            Tickets[]
- blockedSchool  BlockedSchool[] 
- messages  RealTimeMessage[]
- 
+  Tickets            Tickets[]
+  blockedSchool      BlockedSchool[]
+  messages           RealTimeMessage[]
+  examMarks ExamMarks[]
 }
-model BlockedSchool{
-  id      Int    @id @default(autoincrement())
-  school_id Int @unique
-  reason String
-  school   School    @relation(fields: [school_id], references: [id])
-  @@index([school_id])
 
+model BlockedSchool {
+  id        Int    @id @default(autoincrement())
+  school_id Int    @unique
+  reason    String
+  school    School @relation(fields: [school_id], references: [id])
+
+  @@index([school_id])
 }
+
 model Classes {
   id        Int    @id @default(autoincrement())
   class     String @map("class")
@@ -103,6 +131,7 @@ model Classes {
   studentAttendance StudentAttendance[]
   classTimetables   ClassTimetable[]
   feedbacks         Feedback[]
+  examMarks ExamMarks[]
 
   @@index([school_id])
 }
@@ -121,51 +150,53 @@ model Holidays {
 
   @@index([school_id])
 }
-model Student {
-  id            Int     @id @default(autoincrement())
-  username      String
-  name          String?
-  gender        Gender?
-  email         String
-  mobile        String
-  class_id      Int
-  school_id     Int
-  
-  photo         Bytes?
-  father_name   String  @default("null")
-  community     String  @default("null")
-  DOB           DateTime?  @default(now())
-  route         String  @default("null")
 
-  class      Classes         @relation(fields: [class_id], references: [id])
-  school     School          @relation(fields: [school_id], references: [id])
-  user       Attendance_user @relation(fields: [username, school_id], references: [username, school_id])
+model Student {
+  id        Int     @id @default(autoincrement())
+  username  String
+  name      String?
+  gender    Gender?
+  email     String
+  mobile    String
+  class_id  Int
+  school_id Int
+
+  photo       Bytes?
+  father_name String    @default("null")
+  community   String    @default("null")
+  DOB         DateTime? @default(now())
+  route       String    @default("null")
+
+  class      Classes             @relation(fields: [class_id], references: [id])
+  school     School              @relation(fields: [school_id], references: [id])
+  user       Attendance_user     @relation(fields: [username, school_id], references: [username, school_id])
   attendance StudentAttendance[]
 
   @@unique([username, school_id]) // ✅ student username unique within school
   @@index([school_id])
   @@index([class_id])
 }
+
 model Staff {
   id          Int     @id @default(autoincrement())
   username    String
   designation String
   name        String?
-  email       String   @default("null")
+  email       String  @default("null")
   gender      Gender?
   mobile      String
   school_id   Int
-  class_ids   Json     @default("null")
-  photo       Bytes?   @default("null")
-  faculty     String   @default("null")
+  class_ids   Json    @default("null")
+  photo       Bytes?  @default("null")
+  faculty     String  @default("null")
 
-  school      School          @relation(fields: [school_id], references: [id])
-  user        Attendance_user @relation("UserToStaff1", fields: [username, school_id], references: [username, school_id], onDelete: Restrict, onUpdate: Cascade)
+  school      School            @relation(fields: [school_id], references: [id])
+  user        Attendance_user   @relation("UserToStaff1", fields: [username, school_id], references: [username, school_id], onDelete: Restrict, onUpdate: Cascade)
   attendances StaffAttendance[]
-  classes     Classes[]       @relation("class_ids")
+  classes     Classes[]         @relation("class_ids")
 
   @@unique([username, school_id]) // ✅ username unique within school
-  @@unique([mobile, school_id])   // ✅ mobile unique within school
+  @@unique([mobile, school_id]) // ✅ mobile unique within school
   @@index([school_id])
 }
 
@@ -184,7 +215,7 @@ model Admin {
   user   Attendance_user @relation(fields: [username, school_id], references: [username, school_id])
 
   @@unique([username, school_id]) // ✅ username unique within school
-  @@unique([mobile, school_id])   // ✅ mobile unique within school
+  @@unique([mobile, school_id]) // ✅ mobile unique within school
   @@index([school_id])
 }
 
@@ -197,8 +228,8 @@ model StaffAttendance {
 
   school School @relation(fields: [school_id], references: [id])
   staff  Staff  @relation(fields: [username, school_id], references: [username, school_id])
-  
-@@unique([username, school_id, date], name: "username_school_date_staff")
+
+  @@unique([username, school_id, date], name: "username_school_date_staff")
   @@index([school_id])
 }
 
@@ -219,7 +250,6 @@ model StudentAttendance {
   @@index([class_id])
 }
 
-
 model ClassTimetable {
   id           Int       @id @default(autoincrement())
   schoolId     Int?
@@ -230,15 +260,15 @@ model ClassTimetable {
 
   School  School?  @relation(fields: [schoolId], references: [id])
   Classes Classes? @relation(fields: [classesId], references: [id])
-  @@unique([schoolId, classesId, dayOfWeek, periodNumber], name: "schoolId_classesId_dayOfWeek_periodNumber")
 
+  @@unique([schoolId, classesId, dayOfWeek, periodNumber], name: "schoolId_classesId_dayOfWeek_periodNumber")
   @@index([schoolId])
   @@index([classesId])
 }
 
 model Feedback {
   id         Int      @id @default(autoincrement())
-  username    String
+  username   String
   name       String
   email      String
   feedback   String
@@ -249,6 +279,7 @@ model Feedback {
   school School  @relation(fields: [school_id], references: [id])
   class  Classes @relation(fields: [class_id], references: [id])
 }
+
 //add parthi
 model Tickets {
   id          Int      @id @default(autoincrement())
@@ -263,8 +294,6 @@ model Tickets {
 
   school School @relation(fields: [school_id], references: [id])
 }
-
-
 
 model Messages {
   id        Int     @id @default(autoincrement())
@@ -293,22 +322,25 @@ model LeaveRequest {
   @@index([username])
   @@index([school_id, class_id])
 }
-model Homework{
-  id         Int      @id @default(autoincrement())
-  school_id  Int
-  class_id   Int
-  title      String
-  subject    String
-  description String
-  assigned_date  DateTime 
-  due_date    DateTime 
-  assigned_by String
-  attachments String?
+
+model Homework {
+  id            Int      @id @default(autoincrement())
+  school_id     Int
+  class_id      Int
+  title         String
+  subject       String
+  description   String
+  assigned_date DateTime
+  due_date      DateTime
+  assigned_by   String
+  attachments   String?
 
   @@index([school_id, class_id])
 }
+
 enum Role {
   admin
   staff
   student
 }
+

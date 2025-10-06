@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import {  Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HolidaysModule } from './holidays/holidays.module';
@@ -19,26 +19,28 @@ import { NewsModule } from './news/news.module';
 import { BlockedSchoolModule} from'./blocked-school/blocked-school.module';
 import { UserModule } from './edit-password/user.module';
 import { HomeworkModule } from'./homework/homework.module';
+import { ExamMarksModule } from'./exam_marks/exam-marks.module'
 @Module({
   imports: [
     StudentsModule,
-    HolidaysModule,
-    AttendanceModule,
-     StaffModule,
-     DashboardModule,
-     ClassTimetableModule,
-     FeedbackModule,
-     SchoolsModule,
-     ClassesModule,
-     AdminModule,
-     AuthModule,
-     AttendanceUserModule,
-     MessagesModule,
-     LeaveRequestModule,
-     NewsModule,
-     BlockedSchoolModule,
-     UserModule,
-     HomeworkModule,
+        HolidaysModule,
+        AttendanceModule,
+         StaffModule,
+         DashboardModule,
+         ClassTimetableModule,
+         FeedbackModule,
+         SchoolsModule,
+         ClassesModule,
+         AdminModule,
+         AuthModule,
+         AttendanceUserModule,
+         MessagesModule,
+         LeaveRequestModule,
+         NewsModule,
+         BlockedSchoolModule,
+         UserModule,
+         HomeworkModule,
+         ExamMarksModule
   ],
   controllers: [AppController],
   providers: [AppService],

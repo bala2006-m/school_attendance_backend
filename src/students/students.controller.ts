@@ -7,10 +7,24 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 @Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
+@Get('periodical-report-all')
+  async periodicalReportAll(@Query('schoolId') username: string,@Query('fromDate') from: string,@Query('toDate') to: string) {
+    return this.studentsService.getCombinedStudentReport(username,from,to);
+  }
+
+
+@Get('fetch_all_student_data_with_class')
+  async fetchAllStudentsClassID(@Query('school_id') schoolId?: string) {
+    return this.studentsService.getStudentsWithFlatClassData(schoolId);
+  }
+
+
  @Get('school-class')
   async getSchoolAndClass(@Query('username') username: string,@Query('school_id') school_id: number) {
     return this.studentsService.getSchoolAndClassByUsername(username,school_id);
   }
+
+
   @Put('update')
 async updateStudent(
   @Query('username') username: string,@Query('school_id') school_id: string,
@@ -22,10 +36,16 @@ async updateStudent(
 
   return this.studentsService.updateStudent(username,dto,school_id);
 }
+
+
+
 @Get('fetch_all_student_data')
   async fetchAllStudents(@Query('school_id') schoolId?: string) {
     return this.studentsService.getAllStudents(schoolId);
   }
+
+
+  
   @Get('by-username')
   async getStudentByUsername(@Query('username') username: string,@Query('school_id') school_id: number) {
     try {
@@ -84,7 +104,7 @@ async updateStudent(
       });
     }
 
-    const id = parseInt(schoolId, 10);
+    const id = parseInt(schoolId);
     if (isNaN(id)) {
       throw new BadRequestException({
         status: 'failure',
