@@ -8,7 +8,7 @@ url="mysql://schoolAttendance:Sensarsoft%40123@[2a02:4780:12:f6a7::1]:3306/schoo
 }
 
 
-  //url      = "mysql://admin:Ramchin123@school-attendance.cr2ue6u44sny.eu-north-1.rds.amazonaws.com:3306/school_attendance"
+//url      = "mysql://admin:Ramchin123@school-attendance.cr2ue6u44sny.eu-north-1.rds.amazonaws.com:3306/school_attendance"
 
 enum Gender {
   M
@@ -24,6 +24,7 @@ enum DayOfWeek {
   Fri
   Sat
 }
+
 model ExamMarks {
   id            Int      @id @default(autoincrement())
   school_id     Int
@@ -34,14 +35,14 @@ model ExamMarks {
   marks         Json
   subjects      Json
   subject_rank  Json
-  rank          String?
+  rank          String  @default("-")
   created_by    String
   created_at    DateTime @default(now())
   updated_by    String
   updated_at    DateTime @updatedAt
   status        String? @default("inactive")
-  date          DateTime?
-  session       String?
+  date          Json    
+  session       Json    
 
   class  Classes         @relation(fields: [class_id], references: [id])
   school School          @relation(fields: [school_id], references: [id])
@@ -343,4 +344,3 @@ enum Role {
   staff
   student
 }
-
