@@ -4,7 +4,9 @@ generator client {
 
 datasource db {
   provider = "mysql"
-url="mysql://schoolAttendance:Sensarsoft%40123@[2a02:4780:12:f6a7::1]:3306/school_attendance"
+  url="mysql://schoolAttendance:Sensarsoft%40123@localhost:3306/school_attendance"
+
+//url="mysql://schoolAttendance:Sensarsoft%40123@[2a02:4780:12:f6a7::1]:3306/school_attendance"
 }
 
 
